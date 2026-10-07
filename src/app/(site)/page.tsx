@@ -11,6 +11,7 @@ import Work from "@/components/site/Work";
 import { getProjects, getServices, getSettings, getStages, getTestimonials } from "@/lib/queries";
 
 export default async function HomePage() {
+  try { getSettings(); } catch (e) { return <pre data-diag="page">{String((e as Error)?.stack ?? e)}</pre>; } // TEMP-DIAG
   const settings = getSettings();
   const stages = getStages();
   const services = getServices();
