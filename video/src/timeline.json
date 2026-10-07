@@ -1,0 +1,21 @@
+{
+  "fps": 30,
+  "bpm": 120,
+  "durationInFrames": 600,
+  "scenes": {
+    "hook":     { "from": 0,   "duration": 92 },
+    "assemble": { "from": 90,  "duration": 92 },
+    "compare":  { "from": 180, "duration": 92 },
+    "search":   { "from": 270, "duration": 92 },
+    "claims":   { "from": 360, "duration": 92 },
+    "metric":   { "from": 450, "duration": 77 },
+    "logo":     { "from": 525, "duration": 75 }
+  },
+  "sfx": {
+    "impact": [0, 15, 30, 45, 60, 450, 525],
+    "whoosh": [84, 174, 264, 354, 444, 519],
+    "click":  [113, 225, 284, 390],
+    "key":    [291, 297, 303, 309, 315, 321],
+    "pop":    [130, 134, 138, 142, 146, 150, 154, 158, 162]
+  }
+}

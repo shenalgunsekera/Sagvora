@@ -1,0 +1,25 @@
+node_modules
+.next
+out
+build
+.DS_Store
+*.pem
+npm-debug.log*
+.env*.local
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# runtime content store + user uploads
+/data/*.db
+/data/*.db-journal
+/data/*.db-wal
+/data/*.db-shm
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# showreel project (video/)
+video/node_modules
+video/out
+video/capture/node_modules
+video/capture/dist
+data/*.bak-*

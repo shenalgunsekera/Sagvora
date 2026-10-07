@@ -1,0 +1,79 @@
+[
+  {
+    "name": "work-steel-fabrication",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043044_18520ed1-05ad-4e8f-bf3e-b55f320ca8a1.png",
+    "alt": "Stacked steel plate and an overhead gantry in a darkened fabrication workshop at night",
+    "project": "steel-fabrication-quotation-engine"
+  },
+  {
+    "name": "work-freight-terminal",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043317_f7e7c6a7-5e2c-4b99-8b83-7b37b9765497.png",
+    "alt": "Rows of shipping containers and an empty loading dock in fog at night",
+    "project": "logistics-exception-desk"
+  },
+  {
+    "name": "work-clinic-corridor",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043317_5e734157-f6f5-4c45-aea3-3e97807446b7.png",
+    "alt": "An empty clinic corridor at night lit by cool light from a window at the far end",
+    "project": "clinic-group-back-office"
+  },
+  {
+    "name": "work-distribution-aisle",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043447_c3e9fe46-d840-440d-8ddb-a76a210dfe0d.png",
+    "alt": "A distribution warehouse aisle of pallet racking receding into darkness",
+    "project": "distributor-continuous-evolution"
+  },
+  {
+    "name": "band-control-room",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043447_2f15f65e-adc5-480e-9d58-2ae1cc536679.png",
+    "alt": "An empty control room at night, one monitor still glowing"
+  },
+  {
+    "name": "cap-workflow-forensics",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043559_66994c5d-bec8-44d5-9491-e68f7240d73b.png",
+    "alt": "Technical drawings and measuring tools on a steel table under a single lamp",
+    "service": "workflow-forensics"
+  },
+  {
+    "name": "cap-process-automation",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043242_dd82aff8-34cd-42cb-a352-cd2159aceec7.png",
+    "alt": "A conveyor line receding into shadow in an empty factory at night",
+    "service": "process-automation"
+  },
+  {
+    "name": "cap-systems-integration",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043559_20ad7a8b-b90b-461b-aabe-2443b4dd689d.png",
+    "alt": "A network patch panel with neatly routed cables and small indicator lights",
+    "service": "systems-integration"
+  },
+  {
+    "name": "cap-ai-copilots",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043635_d09d8c90-31a7-49d7-8c24-6f58985fb16e.png",
+    "alt": "An empty desk at night with a closed laptop, a notebook and a single lamp",
+    "service": "ai-copilots"
+  },
+  {
+    "name": "cap-document-intelligence",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043635_bff97d58-99c8-41f9-b21d-f41f65b0d8e2.png",
+    "alt": "Stacks of printed documents and archive folders rim-lit in the dark",
+    "service": "document-quotation-intelligence"
+  },
+  {
+    "name": "cap-autonomous-agents",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043721_3891ed69-8eb5-4ba7-b82a-c27faeb44f87.png",
+    "alt": "A single server rack standing in a dark data hall, status lights glowing",
+    "service": "autonomous-agents"
+  },
+  {
+    "name": "cap-ai-departments",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043721_863a3893-2008-4d08-b8f4-8411d6c4b3f1.png",
+    "alt": "An empty open-plan office at night, rows of vacant desks receding into shadow",
+    "service": "ai-departments"
+  },
+  {
+    "name": "cap-evolution-retainer",
+    "src": "https://d8j0ntlcm91z4.cloudfront.net/user_3HR4fFqhEmwl7QMHvlaPF1SZ7ax/hf_20260805_043829_aae0d176-8688-464a-b4ad-ac3d6269ec9b.png",
+    "alt": "Long-exposure light trails curving through a dark architectural space",
+    "service": "evolution-retainer"
+  }
+]
