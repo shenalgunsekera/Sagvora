@@ -2,7 +2,15 @@ import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+/**
+ * Serverless hosts (Vercel) can only write to /tmp and start every instance
+ * from a clean filesystem. There the store is a copy of data/content.db — the
+ * published content snapshot (see scripts/snapshot-content.mjs). Writes made
+ * there (admin edits, contact messages) last only as long as the instance.
+ */
+const SERVERLESS = Boolean(process.env.VERCEL);
+const SNAPSHOT_PATH = path.join(process.cwd(), "data", "content.db");
+const DATA_DIR = SERVERLESS ? path.join("/tmp", "sagvora") : path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "sagvora.db");
 const SCHEMA_PATH = path.join(process.cwd(), "src", "lib", "schema.sql");
 
@@ -35,6 +43,9 @@ export function getDb(): Database.Database {
   if (global.__sagvoraDb) return global.__sagvoraDb;
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (SERVERLESS && !fs.existsSync(DB_PATH) && fs.existsSync(SNAPSHOT_PATH)) {
+    fs.copyFileSync(SNAPSHOT_PATH, DB_PATH);
+  }
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");

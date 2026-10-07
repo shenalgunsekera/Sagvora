@@ -11,6 +11,8 @@ tsconfig.tsbuildinfo
 
 # runtime content store + user uploads
 /data/*.db
+# …except the published content snapshot (no users, no messages)
+!/data/content.db
 /data/*.db-journal
 /data/*.db-wal
 /data/*.db-shm
