@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { readErrors } from "@/lib/error-log";
 
 // Deployment check: can this instance open the content store? Reports file
 // presence and the failure message only — no content, no environment values.
@@ -29,10 +30,6 @@ export async function GET() {
     report.error = `${e.name}: ${e.message}`;
     report.stack = e.stack?.split("\n").slice(0, 6);
   }
-  try {
-    report.recentErrors = JSON.parse(fs.readFileSync("/tmp/sagvora/errors.json", "utf8"));
-  } catch {
-    report.recentErrors = [];
-  }
+  report.recentErrors = readErrors();
   return NextResponse.json(report, { status: report.ok ? 200 : 500, headers: { "cache-control": "no-store" } });
 }
