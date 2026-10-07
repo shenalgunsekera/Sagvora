@@ -57,7 +57,13 @@ export function getDb(): Database.Database {
     }
   }
   const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+  // Wait out brief locks instead of failing the request.
+  db.pragma("busy_timeout = 5000");
+  // WAL suits the long-lived local server. On serverless, many processes cold
+  // start against the same /tmp copy at once, and switching a file into WAL
+  // needs an exclusive lock — they blocked each other into 500s and timeouts.
+  // That copy is read-mostly, so the default rollback journal is the right fit.
+  if (!SERVERLESS) db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(fs.readFileSync(SCHEMA_PATH, "utf8"));
 
