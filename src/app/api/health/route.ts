@@ -29,5 +29,10 @@ export async function GET() {
     report.error = `${e.name}: ${e.message}`;
     report.stack = e.stack?.split("\n").slice(0, 6);
   }
+  try {
+    report.recentErrors = JSON.parse(fs.readFileSync("/tmp/sagvora/errors.json", "utf8"));
+  } catch {
+    report.recentErrors = [];
+  }
   return NextResponse.json(report, { status: report.ok ? 200 : 500, headers: { "cache-control": "no-store" } });
 }

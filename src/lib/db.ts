@@ -44,7 +44,17 @@ export function getDb(): Database.Database {
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
   if (SERVERLESS && !fs.existsSync(DB_PATH) && fs.existsSync(SNAPSHOT_PATH)) {
-    fs.copyFileSync(SNAPSHOT_PATH, DB_PATH);
+    // Several processes can cold-start on one instance and share /tmp. Copy to
+    // a private name and rename into place (atomic), so nobody ever opens a
+    // half-written file — that surfaced as intermittent 500s on first requests.
+    const staging = `${DB_PATH}.${process.pid}.${Date.now()}.tmp`;
+    fs.copyFileSync(SNAPSHOT_PATH, staging);
+    try {
+      if (fs.existsSync(DB_PATH)) fs.rmSync(staging);
+      else fs.renameSync(staging, DB_PATH);
+    } catch {
+      fs.rmSync(staging, { force: true });
+    }
   }
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
