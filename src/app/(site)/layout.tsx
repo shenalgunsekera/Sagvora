@@ -10,8 +10,7 @@ import { getSettings } from "@/lib/queries";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  let s;
-  try { s = getSettings(); } catch { return {}; } // TEMP-DIAG
+  const s = getSettings();
   const name = `${s.brandName} ${s.brandSuffix}`;
   const image = { url: "/og.png", width: 1200, height: 630, alt: name };
 
@@ -38,8 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  let settings;
-  try { settings = getSettings(); } catch (e) { return <pre data-diag="layout">{String((e as Error)?.stack ?? e)}</pre>; } // TEMP-DIAG
+  const settings = getSettings();
 
   return (
     <>
