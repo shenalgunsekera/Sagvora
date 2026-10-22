@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
@@ -72,8 +73,25 @@ export function getDb(): Database.Database {
   ensureColumn(db, "projects", "logo", "TEXT");
   ensureColumn(db, "projects", "accent", "TEXT");
 
+  // The published snapshot ships without users. On serverless, the admin
+  // account comes from ADMIN_EMAIL / ADMIN_PASSWORD in the host's environment
+  // settings, so no credential ever lives in the repository.
+  if (SERVERLESS) seedAdminFromEnv(db);
+
   global.__sagvoraDb = db;
   return db;
+}
+
+function seedAdminFromEnv(db: Database.Database) {
+  const email = process.env.ADMIN_EMAIL?.trim();
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password || password.length < 8) return;
+  if (db.prepare("SELECT id FROM users LIMIT 1").get()) return;
+  db.prepare("INSERT OR IGNORE INTO users (email, name, passwordHash) VALUES (?, ?, ?)").run(
+    email,
+    process.env.ADMIN_NAME?.trim() || "Administrator",
+    bcrypt.hashSync(password, 10),
+  );
 }
 
 /** Parse a JSON column, falling back to `fallback` on anything malformed. */
