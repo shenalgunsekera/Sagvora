@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
-import { getDb } from "./db";
+import { firestore } from "./firebase";
 import type { AdminUser } from "./types";
 
 export const SESSION_COOKIE = "sagvora_session";
@@ -19,7 +19,7 @@ export async function signSession(user: AdminUser) {
   return new SignJWT({
     email: user.email,
     name: user.name,
-    v: currentTokenVersion(user.id),
+    v: await currentTokenVersion(user.id),
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(user.id))
@@ -28,11 +28,24 @@ export async function signSession(user: AdminUser) {
     .sign(secret());
 }
 
-function currentTokenVersion(userId: number): number {
-  const row = getDb()
-    .prepare("SELECT tokenVersion FROM users WHERE id = ?")
-    .get(userId) as { tokenVersion: number } | undefined;
-  return row?.tokenVersion ?? 0;
+type UserDoc = {
+  id: number;
+  email: string;
+  emailLower: string;
+  name: string;
+  passwordHash: string;
+  tokenVersion: number;
+  createdAt: string;
+};
+
+const users = () => firestore().collection("users");
+
+async function getUser(id: number): Promise<UserDoc | null> {
+  return ((await users().doc(String(id)).get()).data() as UserDoc) ?? null;
+}
+
+async function currentTokenVersion(userId: number): Promise<number> {
+  return (await getUser(userId))?.tokenVersion ?? 0;
 }
 
 export async function verifySession(token: string): Promise<AdminUser | null> {
@@ -42,7 +55,7 @@ export async function verifySession(token: string): Promise<AdminUser | null> {
 
     // A valid signature is not enough: a token minted before the last password
     // change must stop working, otherwise a stolen session outlives the reset.
-    if (Number(payload.v ?? 0) !== currentTokenVersion(id)) return null;
+    if (Number(payload.v ?? 0) !== (await currentTokenVersion(id))) return null;
 
     return {
       id,
@@ -91,24 +104,44 @@ export class AuthError extends Error {
 
 /* ------------------------------------------------------------------ credentials */
 
-export function verifyCredentials(email: string, password: string): AdminUser | null {
-  const row = getDb()
-    .prepare("SELECT id, email, name, passwordHash FROM users WHERE lower(email) = lower(?)")
-    .get(email.trim()) as
-    | { id: number; email: string; name: string; passwordHash: string }
-    | undefined;
+/**
+ * The first admin comes from ADMIN_EMAIL / ADMIN_PASSWORD in the environment,
+ * created the first time anyone tries to sign in while no account exists. After
+ * that the account lives in Firestore and is managed from /admin/account.
+ */
+async function ensureFirstAdmin() {
+  if (!(await users().limit(1).get()).empty) return;
+  const email = process.env.ADMIN_EMAIL?.trim();
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password || password.length < 8) return;
+  const user: UserDoc = {
+    id: 1,
+    email,
+    emailLower: email.toLowerCase(),
+    name: process.env.ADMIN_NAME?.trim() || "Administrator",
+    passwordHash: bcrypt.hashSync(password, 12),
+    tokenVersion: 0,
+    createdAt: new Date().toISOString(),
+  };
+  // create() fails if a parallel request got there first — that is fine.
+  await users().doc("1").create(user).catch(() => {});
+}
+
+export async function verifyCredentials(email: string, password: string): Promise<AdminUser | null> {
+  await ensureFirstAdmin();
+  const snap = await users().where("emailLower", "==", email.trim().toLowerCase()).limit(1).get();
+  const row = snap.docs[0]?.data() as UserDoc | undefined;
   if (!row) return null;
   if (!bcrypt.compareSync(password, row.passwordHash)) return null;
   return { id: row.id, email: row.email, name: row.name };
 }
 
-export function changePassword(userId: number, newPassword: string) {
-  const hash = bcrypt.hashSync(newPassword, 12);
-  getDb()
-    .prepare(
-      "UPDATE users SET passwordHash = ?, tokenVersion = tokenVersion + 1 WHERE id = ?",
-    )
-    .run(hash, userId);
+export async function changePassword(userId: number, newPassword: string) {
+  const user = await getUser(userId);
+  if (!user) return;
+  await users()
+    .doc(String(userId))
+    .update({ passwordHash: bcrypt.hashSync(newPassword, 12), tokenVersion: user.tokenVersion + 1 });
 }
 
 /* ------------------------------------------------------------------ throttle */
@@ -151,6 +184,6 @@ export function clearLoginFailures(key: string) {
   attempts.delete(key);
 }
 
-export function updateAccount(userId: number, email: string, name: string) {
-  getDb().prepare("UPDATE users SET email = ?, name = ? WHERE id = ?").run(email, name, userId);
+export async function updateAccount(userId: number, email: string, name: string) {
+  await users().doc(String(userId)).update({ email, emailLower: email.toLowerCase(), name });
 }

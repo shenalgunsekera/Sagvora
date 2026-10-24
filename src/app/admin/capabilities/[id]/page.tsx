@@ -15,17 +15,17 @@ export default async function CapabilityEditor({
   const { id } = await params;
   const isNew = id === "new";
 
-  const service = isNew ? null : getService(Number(id));
+  const service = isNew ? null : await getService(Number(id));
   if (!isNew && !service) notFound();
 
   // A sensible default order for new entries: append to the end.
-  const nextOrder = getServices(false).length;
+  const nextOrder = (await getServices(false)).length;
 
   return (
     <ServiceForm
       service={service}
-      media={getMedia()}
-      stages={getStages(false)}
+      media={await getMedia()}
+      stages={await getStages(false)}
       nextOrder={nextOrder}
     />
   );

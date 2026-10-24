@@ -1,7 +1,5 @@
 "use server";
 
-import fs from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import sharp from "sharp";
@@ -15,6 +13,7 @@ import {
 } from "@/lib/auth";
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { bool, json, num, slugFrom, str } from "@/lib/form";
+import { deleteBlob, saveBlob } from "@/lib/media-store";
 import {
   createMedia,
   deleteMedia,
@@ -27,6 +26,7 @@ import {
   getSettings,
   isOrderedTable,
   moveItem,
+  reserveMediaId,
   saveSettings,
   setMessageStatus,
   upsertProject,
@@ -62,7 +62,7 @@ export async function moveItemAction(formData: FormData) {
   if (!isOrderedTable(table)) return;
 
   const dir = num(formData, "dir") < 0 ? -1 : 1;
-  moveItem(table, num(formData, "id"), dir);
+  await moveItem(table, num(formData, "id"), dir);
 
   refresh(LIST_PATHS[table]);
 }
@@ -75,9 +75,9 @@ export async function saveServiceAction(formData: FormData) {
   await requireUser();
 
   const id = num(formData, "id") || undefined;
-  upsertService({
+  await upsertService({
     id,
-    slug: uniqueSlug("services", slugFrom(formData), id),
+    slug: await uniqueSlug("services", slugFrom(formData), id),
     title: str(formData, "title"),
     kicker: str(formData, "kicker"),
     summary: str(formData, "summary"),
@@ -97,7 +97,7 @@ export async function saveServiceAction(formData: FormData) {
 
 export async function deleteServiceAction(formData: FormData) {
   await requireUser();
-  deleteService(num(formData, "id"));
+  await deleteService(num(formData, "id"));
   refresh("/admin/capabilities");
 }
 
@@ -109,9 +109,9 @@ export async function saveProjectAction(formData: FormData) {
   await requireUser();
 
   const id = num(formData, "id") || undefined;
-  upsertProject({
+  await upsertProject({
     id,
-    slug: uniqueSlug("projects", slugFrom(formData), id),
+    slug: await uniqueSlug("projects", slugFrom(formData), id),
     title: str(formData, "title"),
     client: str(formData, "client"),
     industry: str(formData, "industry"),
@@ -139,7 +139,7 @@ export async function saveProjectAction(formData: FormData) {
 
 export async function deleteProjectAction(formData: FormData) {
   await requireUser();
-  deleteProject(num(formData, "id"));
+  await deleteProject(num(formData, "id"));
   refresh("/admin/work");
 }
 
@@ -151,7 +151,7 @@ export async function saveStageAction(formData: FormData) {
   await requireUser();
 
   const id = num(formData, "id") || undefined;
-  upsertStage({
+  await upsertStage({
     id,
     number: num(formData, "number", 1),
     title: str(formData, "title"),
@@ -169,7 +169,7 @@ export async function saveStageAction(formData: FormData) {
 
 export async function deleteStageAction(formData: FormData) {
   await requireUser();
-  deleteStage(num(formData, "id"));
+  await deleteStage(num(formData, "id"));
   refresh("/admin/stages");
 }
 
@@ -181,7 +181,7 @@ export async function saveTestimonialAction(formData: FormData) {
   await requireUser();
 
   const id = num(formData, "id") || undefined;
-  upsertTestimonial({
+  await upsertTestimonial({
     id,
     quote: str(formData, "quote"),
     author: str(formData, "author"),
@@ -198,7 +198,7 @@ export async function saveTestimonialAction(formData: FormData) {
 
 export async function deleteTestimonialAction(formData: FormData) {
   await requireUser();
-  deleteTestimonial(num(formData, "id"));
+  await deleteTestimonial(num(formData, "id"));
   refresh("/admin/testimonials");
 }
 
@@ -208,7 +208,7 @@ export async function deleteTestimonialAction(formData: FormData) {
 
 export async function saveSettingsAction(formData: FormData) {
   await requireUser();
-  const current = getSettings();
+  const current = await getSettings();
 
   const next: SiteSettings = {
     ...current,
@@ -259,13 +259,13 @@ export async function saveSettingsAction(formData: FormData) {
     seoDescription: str(formData, "seoDescription"),
   };
 
-  saveSettings(next);
+  await saveSettings(next);
   refresh("/admin/settings");
 }
 
 export async function resetSettingsAction() {
   await requireUser();
-  saveSettings(DEFAULT_SETTINGS);
+  await saveSettings(DEFAULT_SETTINGS);
   refresh("/admin/settings");
 }
 
@@ -277,13 +277,13 @@ export async function setMessageStatusAction(formData: FormData) {
   await requireUser();
   const status = str(formData, "status") as Message["status"];
   if (!["new", "read", "archived"].includes(status)) return;
-  setMessageStatus(num(formData, "id"), status);
+  await setMessageStatus(num(formData, "id"), status);
   refresh("/admin/inbox");
 }
 
 export async function deleteMessageAction(formData: FormData) {
   await requireUser();
-  deleteMessage(num(formData, "id"));
+  await deleteMessage(num(formData, "id"));
   refresh("/admin/inbox");
 }
 
@@ -291,7 +291,6 @@ export async function deleteMessageAction(formData: FormData) {
    Media
    ========================================================================== */
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"]);
 
@@ -315,8 +314,6 @@ export async function uploadMediaAction(
     return { error: "That file is over the 8 MB limit." };
   }
 
-  await fs.mkdir(UPLOAD_DIR, { recursive: true });
-
   const stamp = Date.now().toString(36);
   const safeBase =
     file.name
@@ -328,6 +325,7 @@ export async function uploadMediaAction(
 
   const buffer = Buffer.from(await file.arrayBuffer());
   let filename: string;
+  let data: Buffer = buffer;
   let width: number | null = null;
   let height: number | null = null;
   let size = buffer.byteLength;
@@ -335,7 +333,6 @@ export async function uploadMediaAction(
 
   if (file.type === "image/svg+xml") {
     filename = `${safeBase}-${stamp}.svg`;
-    await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
   } else {
     // Normalise everything else to a capped-width WebP: one format, predictable
     // weight, and no surprise 12-megapixel hero images.
@@ -346,22 +343,26 @@ export async function uploadMediaAction(
       .webp({ quality: 82 })
       .toBuffer({ resolveWithObject: true });
 
-    await fs.writeFile(path.join(UPLOAD_DIR, filename), out.data);
+    data = out.data;
     width = out.info.width;
     height = out.info.height;
     size = out.data.byteLength;
     mime = "image/webp";
   }
 
-  createMedia({
+  // Files live in Firestore (lib/media-store) and are served from /media/...,
+  // so uploads survive serverless restarts and redeploys.
+  const id = await reserveMediaId();
+  await saveBlob(id, mime, data);
+  await createMedia({
     filename,
-    url: `/uploads/${filename}`,
+    url: `/media/${id}/${filename}`,
     mime,
     size,
     width,
     height,
     alt: str(formData, "alt"),
-  });
+  }, id);
 
   refresh("/admin/media");
   return { ok: true };
@@ -371,21 +372,13 @@ export async function deleteMediaAction(formData: FormData) {
   await requireUser();
 
   const id = num(formData, "id");
-  const item = getMediaItem(id);
+  const item = await getMediaItem(id);
   if (!item) return;
 
-  deleteMedia(id);
-
-  // Resolve from the stored URL rather than assuming the uploads folder, so
-  // library entries that live elsewhere under /public (the shipped imagery, for
-  // one) delete their file too. The containment check keeps a crafted URL from
-  // reaching outside /public.
-  const PUBLIC_DIR = path.join(process.cwd(), "public");
-  const target = path.resolve(PUBLIC_DIR, "." + item.url);
-  if (target.startsWith(PUBLIC_DIR + path.sep)) {
-    // Best effort — a missing file should not block removing the record.
-    await fs.unlink(target).catch(() => {});
-  }
+  await deleteMedia(id);
+  // Uploaded files are stored in Firestore. Library entries pointing at the
+  // shipped /public imagery are records only; those files ship with the code.
+  if (item.url.startsWith("/media/")) await deleteBlob(id);
 
   refresh("/admin/media");
 }
@@ -403,7 +396,7 @@ export async function updateAccountAction(
   const name = str(formData, "name", user.name);
   if (!email) return { error: "Email is required." };
 
-  updateAccount(user.id, email, name);
+  await updateAccount(user.id, email, name);
   refresh("/admin/account");
   return { ok: true };
 }
@@ -419,7 +412,7 @@ export async function changePasswordAction(
   if (next.length < 10) return { error: "Use at least 10 characters." };
   if (next !== confirm) return { error: "The two passwords do not match." };
 
-  changePassword(user.id, next);
+  await changePassword(user.id, next);
 
   // The version bump above invalidates every existing session, this one
   // included. Re-issue the caller's cookie so the person doing the reset is not

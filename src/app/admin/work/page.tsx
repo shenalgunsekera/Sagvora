@@ -21,7 +21,7 @@ export default async function WorkAdmin({
   await requireAdmin();
 
   const query = await searchParams;
-  const all = getProjects(false);
+  const all = await getProjects(false);
   const projects = filterList(all, query, (p) => [
     p.title,
     p.client,

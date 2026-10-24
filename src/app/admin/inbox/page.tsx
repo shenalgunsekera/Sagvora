@@ -8,7 +8,7 @@ export const metadata = { title: "Inbox" };
 export default async function InboxAdmin() {
   await requireAdmin();
 
-  const messages = getMessages();
+  const messages = await getMessages();
   const unread = messages.filter((m) => m.status === "new").length;
 
   return (

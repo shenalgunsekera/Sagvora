@@ -44,7 +44,7 @@ export async function loginAction(
 
   if (!email || !password) return { error: "Email and password are both required." };
 
-  const user = verifyCredentials(email, password);
+  const user = await verifyCredentials(email, password);
   if (!user) {
     recordLoginFailure(key);
     // One message for both cases — never confirm which half was wrong.

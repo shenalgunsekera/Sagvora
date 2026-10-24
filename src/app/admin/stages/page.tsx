@@ -9,7 +9,7 @@ export const metadata = { title: "Ladder stages" };
 export default async function StagesAdmin() {
   await requireAdmin();
 
-  const stages = getStages(false);
+  const stages = await getStages(false);
 
   return (
     <>

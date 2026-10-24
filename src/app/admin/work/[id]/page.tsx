@@ -11,15 +11,15 @@ export default async function WorkEditor({ params }: { params: Promise<{ id: str
   const { id } = await params;
   const isNew = id === "new";
 
-  const project = isNew ? null : getProject(Number(id));
+  const project = isNew ? null : await getProject(Number(id));
   if (!isNew && !project) notFound();
 
   return (
     <ProjectForm
       project={project}
-      media={getMedia()}
-      stages={getStages(false)}
-      nextOrder={getProjects(false).length}
+      media={await getMedia()}
+      stages={await getStages(false)}
+      nextOrder={(await getProjects(false)).length}
     />
   );
 }

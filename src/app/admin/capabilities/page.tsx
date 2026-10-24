@@ -22,7 +22,7 @@ export default async function CapabilitiesAdmin({
   await requireAdmin();
 
   const query = await searchParams;
-  const all = getServices(false);
+  const all = await getServices(false);
   // Titles, labels and slugs only. Including the summary and body made short
   // queries useless — "ai" hit "wait state" and "audit trail" and matched
   // almost everything.

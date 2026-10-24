@@ -11,7 +11,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
   if (!project) return { title: "Not found" };
 
   // Share the case study's own cover when it has one; fall back to the site card.
@@ -39,13 +39,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function WorkPage({ params }: Params) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
   if (!project || !project.published) notFound();
 
-  const all = getProjects();
+  const all = await getProjects();
   const idx = all.findIndex((p) => p.slug === project.slug);
   const next = all[(idx + 1) % all.length];
-  const stage = getStages().find((s) => s.number === project.stage);
+  const stage = (await getStages()).find((s) => s.number === project.stage);
 
   const chapters = [
     { label: "The situation", body: project.challenge },

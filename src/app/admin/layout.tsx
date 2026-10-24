@@ -31,16 +31,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      <AdminNav user={user} unread={countNewMessages()} />
+      <AdminNav user={user} unread={await countNewMessages()} />
       <main className="min-w-0 flex-1 px-6 py-10 md:px-10 lg:px-12">
-        {process.env.VERCEL && (
-          // Serverless keeps the store in /tmp: edits here are not permanent.
-          <p className="mb-8 rounded-[4px] border border-signal-dim bg-signal-ghost px-4 py-3 text-sm text-paper-80">
-            Heads up: on this host, changes made here are temporary and reset when the server
-            restarts. Make lasting edits on your computer, run <code>npm run snapshot</code>, then
-            commit and push.
-          </p>
-        )}
         {children}
       </main>
     </div>

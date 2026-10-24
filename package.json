@@ -7,16 +7,16 @@
     "prepare:assets": "node scripts/prepare-assets.mjs",
     "seed": "node scripts/seed.mjs",
     "imagery": "node scripts/install-imagery.mjs",
-    "setup": "npm run prepare:assets && npm run seed && npm run imagery",
+    "setup": "npm run prepare:assets && npm run seed && npm run imagery && npm run firestore:import",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "snapshot": "node scripts/snapshot-content.mjs"
+    "firestore:import": "node scripts/import-to-firestore.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "better-sqlite3": "^11.10.0",
+    "firebase-admin": "^13.10.0",
     "jose": "^6.0.11",
     "next": "^15.3.3",
     "react": "^19.1.0",
@@ -31,7 +31,8 @@
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
     "tailwindcss": "^4.1.8",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "better-sqlite3": "^11.10.0"
   },
   "engines": {
     "node": "22.x"

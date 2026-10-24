@@ -6,10 +6,10 @@ import { requireAdmin } from "@/lib/guard";
 export default async function AdminDashboard() {
   await requireAdmin();
 
-  const counts = getCounts();
-  const recent = getMessages().slice(0, 5);
-  const unpublishedServices = getServices(false).filter((s) => !s.published).length;
-  const unpublishedProjects = getProjects(false).filter((p) => !p.published).length;
+  const counts = await getCounts();
+  const recent = (await getMessages()).slice(0, 5);
+  const unpublishedServices = (await getServices(false)).filter((s) => !s.published).length;
+  const unpublishedProjects = (await getProjects(false)).filter((p) => !p.published).length;
 
   const tiles = [
     { label: "Capabilities", value: counts.services, href: "/admin/capabilities" },

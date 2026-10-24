@@ -16,11 +16,11 @@ export default async function TestimonialEditor({
   const { id } = await params;
   const isNew = id === "new";
 
-  const item = isNew ? null : getTestimonial(Number(id));
+  const item = isNew ? null : await getTestimonial(Number(id));
   if (!isNew && !item) notFound();
 
-  const media = getMedia();
-  const nextOrder = getTestimonials(false).length;
+  const media = await getMedia();
+  const nextOrder = (await getTestimonials(false)).length;
 
   return (
     <form action={saveTestimonialAction}>

@@ -9,7 +9,7 @@ export const metadata = { title: "Testimonials" };
 export default async function TestimonialsAdmin() {
   await requireAdmin();
 
-  const items = getTestimonials(false);
+  const items = await getTestimonials(false);
 
   return (
     <>

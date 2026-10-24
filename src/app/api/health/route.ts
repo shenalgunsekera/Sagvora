@@ -1,35 +1,23 @@
-import fs from "node:fs";
-import path from "node:path";
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
-import { readErrors } from "@/lib/error-log";
+import { firestore } from "@/lib/firebase";
 
-// Deployment check: can this instance open the content store? Reports file
-// presence and the failure message only — no content, no environment values.
+// Deployment check: can this instance reach Firestore? Reports status only —
+// no content and no environment values.
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const cwd = process.cwd();
   const report: Record<string, unknown> = {
     node: process.version,
-    serverless: Boolean(process.env.VERCEL),
+    firebaseConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT),
     authSecretSet: Boolean(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
-    files: {
-      schema: fs.existsSync(path.join(cwd, "src", "lib", "schema.sql")),
-      snapshot: fs.existsSync(path.join(cwd, "data", "content.db")),
-      tmpStore: fs.existsSync("/tmp/sagvora/sagvora.db"),
-    },
   };
   try {
-    const db = getDb();
-    report.projects = (db.prepare("SELECT COUNT(*) AS c FROM projects").get() as { c: number }).c;
+    const snap = await firestore().collection("projects").count().get();
+    report.projects = snap.data().count;
     report.ok = true;
   } catch (err) {
-    const e = err as Error;
     report.ok = false;
-    report.error = `${e.name}: ${e.message}`;
-    report.stack = e.stack?.split("\n").slice(0, 6);
+    report.error = (err as Error).message;
   }
-  report.recentErrors = readErrors();
   return NextResponse.json(report, { status: report.ok ? 200 : 500, headers: { "cache-control": "no-store" } });
 }

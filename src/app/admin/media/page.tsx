@@ -12,7 +12,7 @@ const kb = (bytes: number) =>
 export default async function MediaAdmin() {
   await requireAdmin();
 
-  const media = getMedia();
+  const media = await getMedia();
 
   return (
     <>

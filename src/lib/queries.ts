@@ -1,5 +1,7 @@
-import { getDb, parseJson } from "./db";
+import "server-only";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { mergeSettings } from "./defaults";
+import { firestore } from "./firebase";
 import type {
   MediaItem,
   Message,
@@ -10,103 +12,99 @@ import type {
   Testimonial,
 } from "./types";
 
-/* ------------------------------------------------------------------ rows -> models */
+/**
+ * Content store on Firestore.
+ *
+ * Every record keeps the numeric `id` it always had (handed out by a counter
+ * document), so admin URLs and forms are unchanged. Documents are stored under
+ * that id as their key.
+ *
+ * Public reads go through Next's data cache, one tag per collection, so a page
+ * view costs no Firestore reads once warm. Every write revalidates its tag, so
+ * an admin save shows up on the live site immediately.
+ */
 
-type Row = Record<string, unknown>;
+type Collection =
+  | "settings"
+  | "stages"
+  | "services"
+  | "projects"
+  | "testimonials"
+  | "messages"
+  | "media";
 
-const toStage = (r: Row): Stage => ({
-  id: r.id as number,
-  number: r.number as number,
-  title: r.title as string,
-  subtitle: r.subtitle as string,
-  goal: r.goal as string,
-  bullets: parseJson<string[]>(r.bullets, []),
-  humanShare: r.humanShare as number,
-  orderIndex: r.orderIndex as number,
-  published: r.published as number,
-});
+const col = (name: Collection | "counters") => firestore().collection(name);
+const now = () => new Date().toISOString();
+const tag = (name: Collection) => `content:${name}`;
 
-const toService = (r: Row): Service => ({
-  id: r.id as number,
-  slug: r.slug as string,
-  title: r.title as string,
-  kicker: r.kicker as string,
-  summary: r.summary as string,
-  body: r.body as string,
-  stage: r.stage as number,
-  glyph: r.glyph as string,
-  image: (r.image as string) ?? null,
-  features: parseJson<string[]>(r.features, []),
-  outcomes: parseJson<Service["outcomes"]>(r.outcomes, []),
-  orderIndex: r.orderIndex as number,
-  published: r.published as number,
-  createdAt: r.createdAt as string,
-  updatedAt: r.updatedAt as string,
-});
+/** Clear the cached copy of a collection after a write. */
+function changed(...names: Collection[]) {
+  for (const n of names) revalidateTag(tag(n));
+}
 
-const toProject = (r: Row): Project => ({
-  id: r.id as number,
-  slug: r.slug as string,
-  title: r.title as string,
-  client: r.client as string,
-  industry: r.industry as string,
-  year: r.year as string,
-  summary: r.summary as string,
-  challenge: r.challenge as string,
-  approach: r.approach as string,
-  outcome: r.outcome as string,
-  cover: (r.cover as string) ?? null,
-  video: (r.video as string) ?? null,
-  logo: (r.logo as string) ?? null,
-  accent: (r.accent as string) ?? null,
-  gallery: parseJson<string[]>(r.gallery, []),
-  tags: parseJson<string[]>(r.tags, []),
-  metrics: parseJson<Project["metrics"]>(r.metrics, []),
-  stage: r.stage as number,
-  featured: r.featured as number,
-  orderIndex: r.orderIndex as number,
-  published: r.published as number,
-  createdAt: r.createdAt as string,
-  updatedAt: r.updatedAt as string,
-});
+/** Next numeric id for a collection, allocated atomically. */
+async function nextId(name: Collection): Promise<number> {
+  const ref = col("counters").doc(name);
+  return firestore().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const next = ((snap.exists ? (snap.data()?.next as number) : 0) || 0) + 1;
+    tx.set(ref, { next });
+    return next;
+  });
+}
 
-const toTestimonial = (r: Row): Testimonial => ({
-  id: r.id as number,
-  quote: r.quote as string,
-  author: r.author as string,
-  role: r.role as string,
-  company: r.company as string,
-  avatar: (r.avatar as string) ?? null,
-  orderIndex: r.orderIndex as number,
-  published: r.published as number,
-});
+async function readAll<T>(name: Collection): Promise<T[]> {
+  const snap = await col(name).get();
+  return snap.docs.map((d) => d.data() as T);
+}
+
+/** Cached whole-collection read; collections here are small (tens of docs). */
+function cachedAll<T>(name: Collection) {
+  return unstable_cache(() => readAll<T>(name), ["all", name], {
+    tags: [tag(name)],
+    revalidate: 3600,
+  })();
+}
+
+const byOrder = <T extends { orderIndex: number; id: number }>(a: T, b: T) =>
+  a.orderIndex - b.orderIndex || a.id - b.id;
+
+/** Insert or update a document keyed by its numeric id. */
+async function upsert<T extends { id?: number }>(
+  name: Collection,
+  input: T,
+  build: (existing: Record<string, unknown> | null) => Record<string, unknown>,
+): Promise<number> {
+  const id = input.id || (await nextId(name));
+  const ref = col(name).doc(String(id));
+  const existing = input.id ? ((await ref.get()).data() ?? null) : null;
+  await ref.set({ ...build(existing), id });
+  changed(name);
+  return id;
+}
+
+async function remove(name: Collection, id: number) {
+  await col(name).doc(String(id)).delete();
+  changed(name);
+}
 
 /* ------------------------------------------------------------------ slugs */
 
 /**
- * Resolve a slug that is free to use.
- *
- * `slug` carries a UNIQUE index, so two records sharing a title would other-
- * wise abort the write and throw away everything the author had typed. Suffix
- * until it is free instead, ignoring the row being edited so re-saving an
- * unchanged record does not keep renaming it.
+ * Resolve a slug that is free to use, suffixing until it is. The record being
+ * edited is ignored so re-saving an unchanged record does not rename it.
  */
-export function uniqueSlug(
+export async function uniqueSlug(
   table: "services" | "projects",
   base: string,
   excludeId?: number,
-): string {
-  const db = getDb();
-  // `table` is a literal union, never caller-supplied text.
-  const taken = db.prepare(
-    `SELECT 1 FROM ${table} WHERE slug = ? AND id IS NOT ?`,
-  );
-
+): Promise<string> {
+  const rows = await readAll<{ id: number; slug: string }>(table);
+  const taken = new Set(rows.filter((r) => r.id !== excludeId).map((r) => r.slug));
   const root = base || "item";
   let candidate = root;
   let n = 2;
-
-  while (taken.get(candidate, excludeId ?? null)) {
+  while (taken.has(candidate)) {
     candidate = `${root}-${n}`;
     n += 1;
   }
@@ -123,120 +121,86 @@ export const isOrderedTable = (v: string): v is OrderedTable =>
   (ORDERED_TABLES as string[]).includes(v);
 
 /**
- * Move one row up or down within its list.
- *
- * Rather than swapping two values, this rewrites the whole list to sequential
- * positions with the pair exchanged — which also repairs duplicate or gapped
- * `orderIndex` values left behind by editing the numbers directly.
+ * Move one record up or down within its list. The whole list is rewritten to
+ * sequential positions, which also repairs gapped or duplicate orderIndex values.
  */
-export function moveItem(table: OrderedTable, id: number, dir: -1 | 1) {
-  const db = getDb();
-  const rows = db
-    .prepare(`SELECT id FROM ${table} ORDER BY orderIndex, id`)
-    .all() as { id: number }[];
-
+export async function moveItem(table: OrderedTable, id: number, dir: -1 | 1) {
+  const rows = (await readAll<{ id: number; orderIndex: number }>(table)).sort(byOrder);
   const from = rows.findIndex((r) => r.id === id);
   if (from === -1) return;
-
   const to = from + dir;
-  if (to < 0 || to >= rows.length) return; // already at the end of the list
+  if (to < 0 || to >= rows.length) return;
 
   const order = rows.map((r) => r.id);
   [order[from], order[to]] = [order[to], order[from]];
 
-  const update = db.prepare(`UPDATE ${table} SET orderIndex = ? WHERE id = ?`);
-  db.transaction(() => {
-    order.forEach((rowId, index) => update.run(index, rowId));
-  })();
+  const batch = firestore().batch();
+  order.forEach((rowId, index) => batch.update(col(table).doc(String(rowId)), { orderIndex: index }));
+  await batch.commit();
+  changed(table);
 }
 
 /* ------------------------------------------------------------------ settings */
 
-export function getSettings(): SiteSettings {
-  const row = getDb().prepare("SELECT value FROM settings WHERE key = 'site'").get() as
-    | { value: string }
-    | undefined;
-  return mergeSettings(parseJson<Partial<SiteSettings> | null>(row?.value, null));
+export async function getSettings(): Promise<SiteSettings> {
+  const value = await unstable_cache(
+    async () => ((await col("settings").doc("site").get()).data() ?? null) as Partial<SiteSettings> | null,
+    ["settings"],
+    { tags: [tag("settings")], revalidate: 3600 },
+  )();
+  return mergeSettings(value);
 }
 
-export function saveSettings(next: SiteSettings) {
-  getDb()
-    .prepare(
-      `INSERT INTO settings (key, value) VALUES ('site', @value)
-       ON CONFLICT(key) DO UPDATE SET value = @value`,
-    )
-    .run({ value: JSON.stringify(next) });
+export async function saveSettings(next: SiteSettings) {
+  await col("settings").doc("site").set(next);
+  changed("settings");
 }
 
 /* ------------------------------------------------------------------ stages */
 
-export function getStages(onlyPublished = true): Stage[] {
-  const where = onlyPublished ? "WHERE published = 1" : "";
-  return (
-    getDb().prepare(`SELECT * FROM stages ${where} ORDER BY orderIndex, number`).all() as Row[]
-  ).map(toStage);
+export async function getStages(onlyPublished = true): Promise<Stage[]> {
+  const rows = await cachedAll<Stage>("stages");
+  return rows
+    .filter((s) => !onlyPublished || s.published === 1)
+    .sort((a, b) => a.orderIndex - b.orderIndex || a.number - b.number);
 }
 
-export function getStage(id: number): Stage | null {
-  const r = getDb().prepare("SELECT * FROM stages WHERE id = ?").get(id) as Row | undefined;
-  return r ? toStage(r) : null;
+export async function getStage(id: number): Promise<Stage | null> {
+  return (await getStages(false)).find((s) => s.id === id) ?? null;
 }
 
 export function upsertStage(input: Partial<Stage> & { id?: number }) {
-  const db = getDb();
-  const payload = {
+  return upsert("stages", input, () => ({
     number: input.number ?? 1,
     title: input.title ?? "",
     subtitle: input.subtitle ?? "",
     goal: input.goal ?? "",
-    bullets: JSON.stringify(input.bullets ?? []),
+    bullets: input.bullets ?? [],
     humanShare: input.humanShare ?? 50,
     orderIndex: input.orderIndex ?? 0,
     published: input.published ?? 1,
-  };
-  if (input.id) {
-    db.prepare(
-      `UPDATE stages SET number=@number, title=@title, subtitle=@subtitle, goal=@goal,
-       bullets=@bullets, humanShare=@humanShare, orderIndex=@orderIndex, published=@published
-       WHERE id=@id`,
-    ).run({ ...payload, id: input.id });
-    return input.id;
-  }
-  const res = db
-    .prepare(
-      `INSERT INTO stages (number, title, subtitle, goal, bullets, humanShare, orderIndex, published)
-       VALUES (@number, @title, @subtitle, @goal, @bullets, @humanShare, @orderIndex, @published)`,
-    )
-    .run(payload);
-  return Number(res.lastInsertRowid);
+  }));
 }
 
-export function deleteStage(id: number) {
-  getDb().prepare("DELETE FROM stages WHERE id = ?").run(id);
-}
+export const deleteStage = (id: number) => remove("stages", id);
 
 /* ------------------------------------------------------------------ services */
 
-export function getServices(onlyPublished = true): Service[] {
-  const where = onlyPublished ? "WHERE published = 1" : "";
-  return (
-    getDb().prepare(`SELECT * FROM services ${where} ORDER BY orderIndex, id`).all() as Row[]
-  ).map(toService);
+export async function getServices(onlyPublished = true): Promise<Service[]> {
+  const rows = await cachedAll<Service>("services");
+  return rows.filter((s) => !onlyPublished || s.published === 1).sort(byOrder);
 }
 
-export function getServiceBySlug(slug: string): Service | null {
-  const r = getDb().prepare("SELECT * FROM services WHERE slug = ?").get(slug) as Row | undefined;
-  return r ? toService(r) : null;
+export async function getServiceBySlug(slug: string): Promise<Service | null> {
+  return (await getServices(false)).find((s) => s.slug === slug) ?? null;
 }
 
-export function getService(id: number): Service | null {
-  const r = getDb().prepare("SELECT * FROM services WHERE id = ?").get(id) as Row | undefined;
-  return r ? toService(r) : null;
+export async function getService(id: number): Promise<Service | null> {
+  return (await getServices(false)).find((s) => s.id === id) ?? null;
 }
 
 export function upsertService(input: Partial<Service> & { id?: number }) {
-  const db = getDb();
-  const payload = {
+  return upsert("services", input, (existing) => ({
     slug: input.slug ?? "",
     title: input.title ?? "",
     kicker: input.kicker ?? "",
@@ -245,56 +209,34 @@ export function upsertService(input: Partial<Service> & { id?: number }) {
     stage: input.stage ?? 0,
     glyph: input.glyph ?? "grid",
     image: input.image ?? null,
-    features: JSON.stringify(input.features ?? []),
-    outcomes: JSON.stringify(input.outcomes ?? []),
+    features: input.features ?? [],
+    outcomes: input.outcomes ?? [],
     orderIndex: input.orderIndex ?? 0,
     published: input.published ?? 1,
-  };
-  if (input.id) {
-    db.prepare(
-      `UPDATE services SET slug=@slug, title=@title, kicker=@kicker, summary=@summary, body=@body,
-       stage=@stage, glyph=@glyph, image=@image, features=@features, outcomes=@outcomes,
-       orderIndex=@orderIndex, published=@published, updatedAt=datetime('now') WHERE id=@id`,
-    ).run({ ...payload, id: input.id });
-    return input.id;
-  }
-  const res = db
-    .prepare(
-      `INSERT INTO services (slug, title, kicker, summary, body, stage, glyph, image, features,
-       outcomes, orderIndex, published)
-       VALUES (@slug, @title, @kicker, @summary, @body, @stage, @glyph, @image, @features,
-       @outcomes, @orderIndex, @published)`,
-    )
-    .run(payload);
-  return Number(res.lastInsertRowid);
+    createdAt: (existing?.createdAt as string) ?? now(),
+    updatedAt: now(),
+  }));
 }
 
-export function deleteService(id: number) {
-  getDb().prepare("DELETE FROM services WHERE id = ?").run(id);
-}
+export const deleteService = (id: number) => remove("services", id);
 
 /* ------------------------------------------------------------------ projects */
 
-export function getProjects(onlyPublished = true): Project[] {
-  const where = onlyPublished ? "WHERE published = 1" : "";
-  return (
-    getDb().prepare(`SELECT * FROM projects ${where} ORDER BY orderIndex, id`).all() as Row[]
-  ).map(toProject);
+export async function getProjects(onlyPublished = true): Promise<Project[]> {
+  const rows = await cachedAll<Project>("projects");
+  return rows.filter((p) => !onlyPublished || p.published === 1).sort(byOrder);
 }
 
-export function getProjectBySlug(slug: string): Project | null {
-  const r = getDb().prepare("SELECT * FROM projects WHERE slug = ?").get(slug) as Row | undefined;
-  return r ? toProject(r) : null;
+export async function getProjectBySlug(slug: string): Promise<Project | null> {
+  return (await getProjects(false)).find((p) => p.slug === slug) ?? null;
 }
 
-export function getProject(id: number): Project | null {
-  const r = getDb().prepare("SELECT * FROM projects WHERE id = ?").get(id) as Row | undefined;
-  return r ? toProject(r) : null;
+export async function getProject(id: number): Promise<Project | null> {
+  return (await getProjects(false)).find((p) => p.id === id) ?? null;
 }
 
 export function upsertProject(input: Partial<Project> & { id?: number }) {
-  const db = getDb();
-  const payload = {
+  return upsert("projects", input, (existing) => ({
     slug: input.slug ?? "",
     title: input.title ?? "",
     client: input.client ?? "",
@@ -308,55 +250,33 @@ export function upsertProject(input: Partial<Project> & { id?: number }) {
     video: input.video ?? null,
     logo: input.logo ?? null,
     accent: input.accent ?? null,
-    gallery: JSON.stringify(input.gallery ?? []),
-    tags: JSON.stringify(input.tags ?? []),
-    metrics: JSON.stringify(input.metrics ?? []),
+    gallery: input.gallery ?? [],
+    tags: input.tags ?? [],
+    metrics: input.metrics ?? [],
     stage: input.stage ?? 1,
     featured: input.featured ?? 0,
     orderIndex: input.orderIndex ?? 0,
     published: input.published ?? 1,
-  };
-  if (input.id) {
-    db.prepare(
-      `UPDATE projects SET slug=@slug, title=@title, client=@client, industry=@industry, year=@year,
-       summary=@summary, challenge=@challenge, approach=@approach, outcome=@outcome, cover=@cover, video=@video, logo=@logo, accent=@accent,
-       gallery=@gallery, tags=@tags, metrics=@metrics, stage=@stage, featured=@featured,
-       orderIndex=@orderIndex, published=@published, updatedAt=datetime('now') WHERE id=@id`,
-    ).run({ ...payload, id: input.id });
-    return input.id;
-  }
-  const res = db
-    .prepare(
-      `INSERT INTO projects (slug, title, client, industry, year, summary, challenge, approach,
-       outcome, cover, video, logo, accent, gallery, tags, metrics, stage, featured, orderIndex, published)
-       VALUES (@slug, @title, @client, @industry, @year, @summary, @challenge, @approach,
-       @outcome, @cover, @video, @logo, @accent, @gallery, @tags, @metrics, @stage, @featured, @orderIndex, @published)`,
-    )
-    .run(payload);
-  return Number(res.lastInsertRowid);
+    createdAt: (existing?.createdAt as string) ?? now(),
+    updatedAt: now(),
+  }));
 }
 
-export function deleteProject(id: number) {
-  getDb().prepare("DELETE FROM projects WHERE id = ?").run(id);
-}
+export const deleteProject = (id: number) => remove("projects", id);
 
 /* ------------------------------------------------------------------ testimonials */
 
-export function getTestimonials(onlyPublished = true): Testimonial[] {
-  const where = onlyPublished ? "WHERE published = 1" : "";
-  return (
-    getDb().prepare(`SELECT * FROM testimonials ${where} ORDER BY orderIndex, id`).all() as Row[]
-  ).map(toTestimonial);
+export async function getTestimonials(onlyPublished = true): Promise<Testimonial[]> {
+  const rows = await cachedAll<Testimonial>("testimonials");
+  return rows.filter((t) => !onlyPublished || t.published === 1).sort(byOrder);
 }
 
-export function getTestimonial(id: number): Testimonial | null {
-  const r = getDb().prepare("SELECT * FROM testimonials WHERE id = ?").get(id) as Row | undefined;
-  return r ? toTestimonial(r) : null;
+export async function getTestimonial(id: number): Promise<Testimonial | null> {
+  return (await getTestimonials(false)).find((t) => t.id === id) ?? null;
 }
 
 export function upsertTestimonial(input: Partial<Testimonial> & { id?: number }) {
-  const db = getDb();
-  const payload = {
+  return upsert("testimonials", input, () => ({
     quote: input.quote ?? "",
     author: input.author ?? "",
     role: input.role ?? "",
@@ -364,96 +284,78 @@ export function upsertTestimonial(input: Partial<Testimonial> & { id?: number })
     avatar: input.avatar ?? null,
     orderIndex: input.orderIndex ?? 0,
     published: input.published ?? 1,
-  };
-  if (input.id) {
-    db.prepare(
-      `UPDATE testimonials SET quote=@quote, author=@author, role=@role, company=@company,
-       avatar=@avatar, orderIndex=@orderIndex, published=@published WHERE id=@id`,
-    ).run({ ...payload, id: input.id });
-    return input.id;
-  }
-  const res = db
-    .prepare(
-      `INSERT INTO testimonials (quote, author, role, company, avatar, orderIndex, published)
-       VALUES (@quote, @author, @role, @company, @avatar, @orderIndex, @published)`,
-    )
-    .run(payload);
-  return Number(res.lastInsertRowid);
+  }));
 }
 
-export function deleteTestimonial(id: number) {
-  getDb().prepare("DELETE FROM testimonials WHERE id = ?").run(id);
+export const deleteTestimonial = (id: number) => remove("testimonials", id);
+
+/* ------------------------------------------------------------------ messages
+ * Admin-only and always read fresh — never cached.
+ */
+
+export async function getMessages(): Promise<Message[]> {
+  const rows = await readAll<Message>("messages");
+  return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
 }
 
-/* ------------------------------------------------------------------ messages */
-
-export function getMessages(): Message[] {
-  return getDb()
-    .prepare("SELECT * FROM messages ORDER BY createdAt DESC, id DESC")
-    .all() as Message[];
+export async function countNewMessages(): Promise<number> {
+  const snap = await col("messages").where("status", "==", "new").count().get();
+  return snap.data().count;
 }
 
-export function countNewMessages(): number {
-  const r = getDb()
-    .prepare("SELECT COUNT(*) AS n FROM messages WHERE status = 'new'")
-    .get() as { n: number };
-  return r.n;
+export async function createMessage(m: Omit<Message, "id" | "status" | "createdAt">) {
+  const id = await nextId("messages");
+  await col("messages").doc(String(id)).set({ ...m, id, status: "new", createdAt: now() });
+  return id;
 }
 
-export function createMessage(m: Omit<Message, "id" | "status" | "createdAt">) {
-  const res = getDb()
-    .prepare(
-      `INSERT INTO messages (name, email, company, subject, message)
-       VALUES (@name, @email, @company, @subject, @message)`,
-    )
-    .run(m);
-  return Number(res.lastInsertRowid);
+export async function setMessageStatus(id: number, status: Message["status"]) {
+  await col("messages").doc(String(id)).update({ status });
 }
 
-export function setMessageStatus(id: number, status: Message["status"]) {
-  getDb().prepare("UPDATE messages SET status = ? WHERE id = ?").run(status, id);
+export async function deleteMessage(id: number) {
+  await col("messages").doc(String(id)).delete();
 }
 
-export function deleteMessage(id: number) {
-  getDb().prepare("DELETE FROM messages WHERE id = ?").run(id);
+/* ------------------------------------------------------------------ media
+ * Library records. Uploaded files themselves live in lib/media-store.ts.
+ */
+
+export async function getMedia(): Promise<MediaItem[]> {
+  const rows = await readAll<MediaItem>("media");
+  return rows.sort((a, b) => b.id - a.id);
 }
 
-/* ------------------------------------------------------------------ media */
-
-export function getMedia(): MediaItem[] {
-  return getDb().prepare("SELECT * FROM media ORDER BY id DESC").all() as MediaItem[];
+export async function createMedia(m: Omit<MediaItem, "id" | "createdAt">, id?: number) {
+  const mediaId = id ?? (await nextId("media"));
+  await col("media").doc(String(mediaId)).set({ ...m, id: mediaId, createdAt: now() });
+  return mediaId;
 }
 
-export function createMedia(m: Omit<MediaItem, "id" | "createdAt">) {
-  const res = getDb()
-    .prepare(
-      `INSERT INTO media (filename, url, mime, size, width, height, alt)
-       VALUES (@filename, @url, @mime, @size, @width, @height, @alt)`,
-    )
-    .run(m);
-  return Number(res.lastInsertRowid);
+/** Reserve a media id before the file is stored, so its URL can carry the id. */
+export const reserveMediaId = () => nextId("media");
+
+export async function getMediaItem(id: number): Promise<MediaItem | null> {
+  return ((await col("media").doc(String(id)).get()).data() as MediaItem) ?? null;
 }
 
-export function getMediaItem(id: number): MediaItem | null {
-  return (getDb().prepare("SELECT * FROM media WHERE id = ?").get(id) as MediaItem) ?? null;
-}
-
-export function deleteMedia(id: number) {
-  getDb().prepare("DELETE FROM media WHERE id = ?").run(id);
+export async function deleteMedia(id: number) {
+  await col("media").doc(String(id)).delete();
 }
 
 /* ------------------------------------------------------------------ dashboard */
 
-export function getCounts() {
-  const db = getDb();
-  const one = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
-  return {
-    services: one("SELECT COUNT(*) AS n FROM services"),
-    projects: one("SELECT COUNT(*) AS n FROM projects"),
-    stages: one("SELECT COUNT(*) AS n FROM stages"),
-    testimonials: one("SELECT COUNT(*) AS n FROM testimonials"),
-    messages: one("SELECT COUNT(*) AS n FROM messages"),
-    newMessages: one("SELECT COUNT(*) AS n FROM messages WHERE status = 'new'"),
-    media: one("SELECT COUNT(*) AS n FROM media"),
-  };
+export async function getCounts() {
+  const count = async (name: Collection) => (await col(name).count().get()).data().count;
+  const [services, projects, stages, testimonials, messages, newMessages, media] = await Promise.all([
+    count("services"),
+    count("projects"),
+    count("stages"),
+    count("testimonials"),
+    count("messages"),
+    countNewMessages(),
+    count("media"),
+  ]);
+  return { services, projects, stages, testimonials, messages, newMessages, media };
 }
+

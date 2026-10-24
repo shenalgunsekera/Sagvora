@@ -34,13 +34,13 @@ export async function GET() {
     exportedAt: new Date().toISOString(),
     exportedBy: user.email,
     schemaVersion: 1,
-    settings: getSettings(),
-    stages: getStages(false),
-    services: getServices(false),
-    projects: getProjects(false),
-    testimonials: getTestimonials(false),
-    messages: getMessages(),
-    media: getMedia(),
+    settings: await getSettings(),
+    stages: await getStages(false),
+    services: await getServices(false),
+    projects: await getProjects(false),
+    testimonials: await getTestimonials(false),
+    messages: await getMessages(),
+    media: await getMedia(),
   };
 
   const stamp = new Date().toISOString().slice(0, 10);

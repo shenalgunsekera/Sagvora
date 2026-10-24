@@ -10,7 +10,7 @@ import { getSettings } from "@/lib/queries";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const s = getSettings();
+  const s = await getSettings();
   const name = `${s.brandName} ${s.brandSuffix}`;
   const image = { url: "/og.png", width: 1200, height: 630, alt: name };
 
@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const settings = getSettings();
+  const settings = await getSettings();
 
   return (
     <>

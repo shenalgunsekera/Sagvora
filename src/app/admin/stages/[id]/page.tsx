@@ -11,10 +11,10 @@ export default async function StageEditor({ params }: { params: Promise<{ id: st
   const { id } = await params;
   const isNew = id === "new";
 
-  const stage = isNew ? null : getStage(Number(id));
+  const stage = isNew ? null : await getStage(Number(id));
   if (!isNew && !stage) notFound();
 
-  const existing = getStages(false);
+  const existing = await getStages(false);
 
   return (
     <StageForm

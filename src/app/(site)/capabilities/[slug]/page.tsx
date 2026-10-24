@@ -11,7 +11,7 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getServiceBySlug(slug);
   if (!service) return { title: "Not found" };
 
   const images = [{ url: service.image ?? "/og.png", alt: service.title }];
@@ -38,12 +38,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function CapabilityPage({ params }: Params) {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  const service = await getServiceBySlug(slug);
   if (!service || !service.published) notFound();
 
-  const settings = getSettings();
-  const stage = getStages().find((s) => s.number === service.stage);
-  const others = getServices()
+  const settings = await getSettings();
+  const stage = (await getStages()).find((s) => s.number === service.stage);
+  const others = (await getServices())
     .filter((s) => s.slug !== service.slug)
     .slice(0, 3);
 

@@ -11,11 +11,11 @@ import Work from "@/components/site/Work";
 import { getProjects, getServices, getSettings, getStages, getTestimonials } from "@/lib/queries";
 
 export default async function HomePage() {
-  const settings = getSettings();
-  const stages = getStages();
-  const services = getServices();
-  const projects = getProjects();
-  const testimonials = getTestimonials();
+  const settings = await getSettings();
+  const stages = await getStages();
+  const services = await getServices();
+  const projects = await getProjects();
+  const testimonials = await getTestimonials();
 
   return (
     <>

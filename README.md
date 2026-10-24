@@ -12,22 +12,33 @@ and every image on the public site is editable from `/admin`.
 
 ```bash
 npm install
-npm run setup     # brand assets + database + seed content + imagery
 npm run dev       # http://localhost:3000
 ```
 
-`npm run setup` is safe to re-run: the seed only inserts rows that are missing,
-so it never overwrites anything you have edited in the admin panel.
+Content lives in **Firestore** (Firebase project `sagvora-innovations`), so local
+development and the live site read and write the same data. `.env.local` needs:
 
-**Sign in at `/admin/login`**
-
-| | |
+| Variable | What it is |
 |---|---|
-| Email | `admin@sagvora.com` |
-| Password | `sagvora2026` |
+| `FIREBASE_SERVICE_ACCOUNT` | Base64 of the Firebase service account JSON. Server only — never commit it. |
+| `AUTH_SECRET` | 32+ random characters; signs the admin session cookie. |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NAME` | Creates the first admin account on first sign-in, if none exists. |
+| `NEXT_PUBLIC_SITE_URL` | The public URL, e.g. `https://sagvora.vercel.app`. |
 
-Change both from **Account** as soon as you are in, and change `AUTH_SECRET`
-in `.env.local` before this ever goes near a public server.
+Set the same variables in Vercel (Production) for the live site.
+
+**Sign in at `/admin/login`** with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. After that
+the account lives in Firestore; change the password from **Account**.
+
+### Starting from an empty Firebase project
+
+```bash
+npm run setup     # brand assets → local SQLite seed → imagery → push to Firestore
+```
+
+The seed is authored in SQLite (`scripts/seed.mjs`) and `npm run firestore:import`
+copies it into Firestore. The import refuses to run once Firestore has content,
+so it can never overwrite admin edits (`-- --force` replaces everything).
 
 ---
 
@@ -38,13 +49,15 @@ in `.env.local` before this ever goes near a public server.
 | Framework | Next.js 15 (App Router, React 19, TypeScript) |
 | Styling | Tailwind CSS v4 with a token layer in `globals.css` |
 | Imagery | 13 dark editorial photographs in `public/imagery/`, ~55 KB each |
-| Data | SQLite via `better-sqlite3` — a single file at `data/sagvora.db` |
+| Data | Firestore via `firebase-admin`, server-side only; reads cached per collection and revalidated on every admin save |
 | Auth | bcrypt password hash + signed JWT session cookie (`jose`) |
-| Images | `sharp` — uploads are converted to WebP and capped at 2400px |
+| Images | `sharp` — uploads become WebP capped at 2400px, stored in Firestore and served from `/media/…` |
 | Animation | none — see below |
 
-No CMS to pay for, no external database, no third-party form service. The whole
-site is one Node process and one file.
+No CMS to pay for and no third-party form service. Everything runs on Firebase's
+free plan: uploads are stored in Firestore in ≤900 KB chunks rather than Cloud
+Storage, which needs a paid plan for new projects. Firestore rules deny all
+browser access; only the server, through the Admin SDK, can read or write.
 
 ---
 
@@ -173,7 +186,7 @@ Reordering rewrites the whole list to sequential positions, which also repairs
 duplicate or gapped `orderIndex` values left by editing the numbers by hand.
 
 **Export JSON** on the dashboard downloads every editable record, drafts
-included — diffable, greppable, and a viable migration path off SQLite.
+included — diffable, greppable, and a full backup of the content.
 
 ### How authorization is enforced
 
@@ -232,35 +245,36 @@ them with approved quotes and publish.
 
 ### Deploying
 
-The site needs a **persistent filesystem** — `data/sagvora.db` and
-`public/uploads/` both live on disk. A small VPS, a container with a mounted
-volume, Railway, Render or Fly all work:
+Vercel: push to `main` and it deploys. The project needs the environment
+variables listed under **Run it**, and `package.json` pins Node 22 (the native
+modules are built and tested against it).
+
+Any Node host works the same way — there is no local state to persist:
 
 ```bash
-npm ci && npm run build && npm run setup && npm start
+npm ci && npm run build && npm start
 ```
 
-It will **not** work as-is on a serverless platform such as Vercel, where the
-filesystem is ephemeral — the database would reset on every deploy. Moving to
-Postgres or Turso would mean rewriting `src/lib/db.ts` and `src/lib/queries.ts`
-only; nothing else touches the database.
-
-**Back up `data/sagvora.db` and `public/uploads/`.** That pair is the entire
-site's content.
+**Backups:** use **Export JSON** in the admin, or schedule Firestore exports in
+the Google Cloud console.
 
 ---
 
 ## Layout
 
 ```
-data/sagvora.db            the content store (gitignored)
-public/uploads/            admin uploads (gitignored)
+src/lib/firebase.ts        Firestore connection (Admin SDK)
+src/lib/queries.ts         every content read and write, with caching
+src/lib/media-store.ts     uploaded files, chunked into Firestore
+src/app/media/             serves uploaded files at /media/<id>/<name>
+scripts/import-to-firestore.mjs  one-time push of the seeded content
+firestore.rules            denies all browser access to Firestore
 public/imagery/            the shipped photography (committed)
 public/og.png              1200×630 share card (generated)
 public/logo-light.png      white wordmark, transparent — generated from 3.png
 public/logo-dark.png       black wordmark, transparent
 scripts/prepare-assets.mjs logo trimming, favicon and app icon generation
-scripts/seed.mjs           idempotent content seed
+scripts/seed.mjs           idempotent content seed (into local SQLite, then imported)
 scripts/imagery.json       imagery manifest: source, alt text, what it attaches to
 scripts/install-imagery.mjs converts imagery to WebP and attaches it
 src/app/(site)/            the public site
@@ -268,7 +282,7 @@ src/app/admin/             the control room
 src/app/api/contact/       the only public API route
 src/app/sitemap.ts         sitemap built from published content
 src/app/robots.ts          robots rules
-src/lib/schema.sql         single source of truth for the database shape
+src/lib/schema.sql         shape of the local seed database
 src/lib/guard.ts           requireAdmin() — the page-level authorization gate
 src/components/fx/         the animation layer
 src/components/site/       page sections

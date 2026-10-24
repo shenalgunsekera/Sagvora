@@ -67,6 +67,6 @@ export async function POST(req: Request) {
   }
 
   const { website: _honeypot, ...data } = parsed.data;
-  createMessage(data);
+  await createMessage(data);
   return NextResponse.json({ ok: true });
 }

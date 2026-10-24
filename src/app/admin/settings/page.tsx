@@ -25,8 +25,8 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
 export default async function SettingsAdmin() {
   await requireAdmin();
 
-  const s = getSettings();
-  const media = getMedia();
+  const s = await getSettings();
+  const media = await getMedia();
 
   return (
     <form action={saveSettingsAction}>
