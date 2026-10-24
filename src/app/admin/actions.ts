@@ -206,6 +206,15 @@ export async function deleteTestimonialAction(formData: FormData) {
    Settings
    ========================================================================== */
 
+/**
+ * Search consoles hand out a whole <meta> tag; accept that or the bare code and
+ * keep just the content value.
+ */
+function verificationCode(raw: string) {
+  const m = /content=["']([^"']+)["']/i.exec(raw);
+  return (m ? m[1] : raw).trim();
+}
+
 export async function saveSettingsAction(formData: FormData) {
   await requireUser();
   const current = await getSettings();
@@ -257,6 +266,9 @@ export async function saveSettingsAction(formData: FormData) {
 
     seoTitle: str(formData, "seoTitle"),
     seoDescription: str(formData, "seoDescription"),
+    founderName: str(formData, "founderName"),
+    googleSiteVerification: verificationCode(str(formData, "googleSiteVerification")),
+    bingSiteVerification: verificationCode(str(formData, "bingSiteVerification")),
   };
 
   await saveSettings(next);

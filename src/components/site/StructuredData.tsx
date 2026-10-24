@@ -1,7 +1,10 @@
+import { siteUrl } from "@/lib/site-url";
 import type { Project, Service, SiteSettings } from "@/lib/types";
 
-const base = () =>
-  (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const base = siteUrl;
+
+/** "SAGVORA" -> "Sagvora": brand fields are stored in display caps. */
+const toTitle = (v: string) => v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
 
 /**
  * JSON-LD. Emitted as a single graph per page so search engines read Sagvora as
@@ -29,7 +32,15 @@ export function OrganisationLd({
   services: Service[];
 }) {
   const url = base();
-  const name = `${settings.brandName} ${settings.brandSuffix}`;
+  const name = `${toTitle(settings.brandName)} ${toTitle(settings.brandSuffix)}`.trim();
+  const short = toTitle(settings.brandName);
+  // "Colombo, Sri Lanka" -> locality + ISO country, so the entity is placed.
+  const [locality, country] = settings.address.split(",").map((p) => p.trim());
+  const countryCode = /sri\s*lanka/i.test(settings.address) ? "LK" : country;
+  // Profiles only: a WhatsApp chat link is a contact method, not an identity.
+  const profiles = (settings.socials ?? [])
+    .map((s) => s.url)
+    .filter((u) => u && !/wa\.me|whatsapp/i.test(u));
 
   return (
     <Ld
@@ -40,25 +51,66 @@ export function OrganisationLd({
             "@type": "Organization",
             "@id": `${url}/#organization`,
             name,
+            // The bare brand is what people type; tie it to this entity.
+            alternateName: [short, settings.brandName, `${settings.brandName} ${settings.brandSuffix}`],
             url,
             description: settings.seoDescription,
             slogan: settings.tagline,
-            logo: `${url}/logo-light.png`,
+            logo: {
+              "@type": "ImageObject",
+              "@id": `${url}/#logo`,
+              url: `${url}/logo-square.png`,
+              width: 512,
+              height: 512,
+              caption: name,
+            },
             image: `${url}/og.png`,
+            ...(settings.founderName
+              ? {
+                  founder: {
+                    "@type": "Person",
+                    "@id": `${url}/#founder`,
+                    name: settings.founderName,
+                    worksFor: { "@id": `${url}/#organization` },
+                  },
+                }
+              : {}),
             ...(settings.email ? { email: settings.email } : {}),
             ...(settings.phone ? { telephone: settings.phone } : {}),
             ...(settings.address
-              ? { address: { "@type": "PostalAddress", addressLocality: settings.address } }
+              ? {
+                  address: {
+                    "@type": "PostalAddress",
+                    addressLocality: locality,
+                    ...(countryCode ? { addressCountry: countryCode } : {}),
+                  },
+                  location: { "@type": "Place", name: settings.address },
+                }
               : {}),
-            ...(settings.socials?.length
-              ? { sameAs: settings.socials.map((s) => s.url).filter(Boolean) }
+            ...(settings.email || settings.phone
+              ? {
+                  contactPoint: {
+                    "@type": "ContactPoint",
+                    contactType: "sales",
+                    ...(settings.email ? { email: settings.email } : {}),
+                    ...(settings.phone ? { telephone: settings.phone } : {}),
+                    availableLanguage: ["en"],
+                    areaServed: "Worldwide",
+                  },
+                }
               : {}),
+            areaServed: "Worldwide",
+            ...(services.length ? { knowsAbout: services.map((s) => s.title) } : {}),
+            ...(profiles.length ? { sameAs: profiles } : {}),
           },
           {
             "@type": "WebSite",
             "@id": `${url}/#website`,
             url,
+            // Google picks the site name shown in results from these.
             name,
+            alternateName: [short, settings.brandName],
+            inLanguage: "en",
             description: settings.seoDescription,
             publisher: { "@id": `${url}/#organization` },
           },
@@ -102,7 +154,7 @@ export function ServiceLd({ service }: { service: Service }) {
         description: service.summary,
         url: `${url}/capabilities/${service.slug}`,
         ...(service.image ? { image: `${url}${service.image}` } : {}),
-        provider: { "@type": "Organization", name: "Sagvora Innovations", url },
+        provider: { "@type": "Organization", "@id": `${url}/#organization`, name: "Sagvora Innovations", url },
         ...(service.features.length
           ? {
               hasOfferCatalog: {
@@ -136,8 +188,8 @@ export function CaseStudyLd({ project }: { project: Project }) {
         ...(project.cover ? { image: `${url}${project.cover}` } : {}),
         ...(project.year ? { datePublished: project.year } : {}),
         dateModified: project.updatedAt,
-        author: { "@type": "Organization", name: "Sagvora Innovations", url },
-        publisher: { "@type": "Organization", name: "Sagvora Innovations", url },
+        author: { "@type": "Organization", "@id": `${url}/#organization`, name: "Sagvora Innovations", url },
+        publisher: { "@type": "Organization", "@id": `${url}/#organization`, name: "Sagvora Innovations", url },
         ...(project.industry ? { about: project.industry } : {}),
         ...(project.tags.length ? { keywords: project.tags.join(", ") } : {}),
       }}

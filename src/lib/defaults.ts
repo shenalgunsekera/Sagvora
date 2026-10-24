@@ -71,9 +71,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ],
   footerNote: "Building the businesses that outlast their own playbooks.",
 
-  seoTitle: "Sagvora Innovations — Business Transformation Company",
+  seoTitle: "Sagvora Innovations — AI & Business Transformation, Sri Lanka",
   seoDescription:
-    "Sagvora Innovations automates your workflows, then layers AI, AI employees and AI departments on top — a five-stage transformation ladder for businesses that intend to still be here in ten years.",
+    "Sagvora Innovations is a Colombo, Sri Lanka business transformation company. We automate your workflows, then add AI assistants, AI employees and AI departments.",
+  founderName: "Shenal Gunasekera",
+  googleSiteVerification: "",
+  bingSiteVerification: "",
 };
 
 /** Merge stored settings over defaults so new fields never break an old save. */

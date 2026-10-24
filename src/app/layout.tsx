@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Inter, JetBrains_Mono } from "next/font/google";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 /* Archivo carries a width axis, which is what lets the headings match the
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   },
   description:
     "We automate first, then introduce AI, then AI employees, then AI departments — a five-stage transformation ladder for businesses that intend to still be here in ten years.",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
 };
 
 export const viewport: Viewport = {

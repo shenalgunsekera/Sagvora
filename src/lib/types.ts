@@ -135,6 +135,12 @@ export type SiteSettings = {
   footerNote: string;
   seoTitle: string;
   seoDescription: string;
+  /** Founder named in the Organization structured data. */
+  founderName: string;
+  /** Google Search Console HTML-tag verification code (content value only). */
+  googleSiteVerification: string;
+  /** Bing Webmaster Tools verification code (msvalidate.01 content value). */
+  bingSiteVerification: string;
 };
 
 export type AdminUser = {

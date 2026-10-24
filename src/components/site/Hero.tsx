@@ -57,6 +57,8 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
             delay={260}
             className="display-xl block text-paper"
           />
+          {/* The wordmark shows the short name; the heading text is the full one. */}
+          <span className="sr-only"> {settings.brandSuffix}</span>
         </h1>
 
         {/* Baseline row: lead + CTAs */}

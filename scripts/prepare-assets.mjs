@@ -8,6 +8,7 @@
  *   src/app/favicon.ico     16/32/48px versions of the same, for /favicon.ico
  *   src/app/apple-icon.png  180px home-screen icon with the SAGVORA wordmark
  *   public/mark.svg         the ascending-ladder mark (brand geometry)
+ *   public/logo-square.png  512px square logo for search engines (Organization.logo)
  *
  *   npm run prepare:assets
  */
@@ -126,6 +127,14 @@ if (fs.existsSync(logoSrc)) {
   });
   fs.writeFileSync(path.join(appDir, "favicon.ico"), Buffer.concat([head, ...pngs]));
   console.log("  icon.png / favicon.ico / apple-icon.png written");
+
+  // Square, dark-on-light logo for search engines (Organization.logo). Google
+  // wants at least 112px square; the white wordmark would vanish on its panels.
+  const black = path.join(pub, "brand", "2.png");
+  if (fs.existsSync(black)) {
+    await sharp(black).resize(512, 512).png({ compressionLevel: 9 }).toFile(path.join(pub, "logo-square.png"));
+    console.log("  logo-square.png written");
+  }
 } else {
   console.warn("  ! public/brand/3.png not found — skipping favicon generation");
 }

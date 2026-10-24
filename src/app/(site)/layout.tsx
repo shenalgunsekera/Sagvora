@@ -15,7 +15,16 @@ export async function generateMetadata(): Promise<Metadata> {
   const image = { url: "/og.png", width: 1200, height: 630, alt: name };
 
   return {
-    title: { default: s.seoTitle, template: `%s · ${name}` },
+    // absolute: the root layout's template must not append the brand again.
+    title: { absolute: s.seoTitle, template: `%s · ${name}` },
+    applicationName: name,
+    authors: s.founderName ? [{ name: s.founderName }] : undefined,
+    creator: name,
+    publisher: name,
+    verification: {
+      ...(s.googleSiteVerification ? { google: s.googleSiteVerification } : {}),
+      ...(s.bingSiteVerification ? { other: { "msvalidate.01": s.bingSiteVerification } } : {}),
+    },
     description: s.seoDescription,
     alternates: { canonical: "/" },
     openGraph: {
@@ -23,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: s.seoDescription,
       siteName: name,
       type: "website",
-      locale: "en",
+      locale: "en_LK",
       url: "/",
       images: [image],
     },

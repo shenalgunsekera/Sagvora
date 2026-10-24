@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { siteUrl } from "@/lib/site-url";
 import { getProjects, getServices } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 /** Built from the content store, so publishing a page lists it automatically. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const base = siteUrl();
 
   const services = (await getServices()).map((s) => ({
     url: `${base}/capabilities/${s.slug}`,

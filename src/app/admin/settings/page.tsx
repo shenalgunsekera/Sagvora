@@ -244,6 +244,21 @@ export default async function SettingsAdmin() {
               className="admin-input"
             />
           </Field>
+          <Field label="Founder" hint="Named as the founder in the structured data search engines read.">
+            <input name="founderName" defaultValue={s.founderName} className="admin-input" />
+          </Field>
+          <Field
+            label="Google Search Console verification"
+            hint="Paste the HTML tag Google gives you (or just its content value)."
+          >
+            <input name="googleSiteVerification" defaultValue={s.googleSiteVerification} className="admin-input" />
+          </Field>
+          <Field
+            label="Bing Webmaster verification"
+            hint="Paste the msvalidate.01 meta tag Bing gives you (or just its content value)."
+          >
+            <input name="bingSiteVerification" defaultValue={s.bingSiteVerification} className="admin-input" />
+          </Field>
         </Group>
       </div>
 

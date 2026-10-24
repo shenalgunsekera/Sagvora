@@ -1,4 +1,13 @@
 import type { NextConfig } from "next";
+import { siteUrl } from "./src/lib/site-url";
+
+/**
+ * The one address search engines should know. The site is reachable on
+ * several hosts (the custom domain, the apex, sagvora.vercel.app); everything
+ * else redirects here so they never compete as duplicates.
+ */
+const CANONICAL = siteUrl();
+const canonicalHost = new URL(CANONICAL).host;
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["firebase-admin", "bcryptjs"],
@@ -8,6 +17,18 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   eslint: { ignoreDuringBuilds: true },
+  async redirects() {
+    // Only the production vercel.app alias — preview deployments keep working.
+    if (canonicalHost === "sagvora.vercel.app") return [];
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "sagvora.vercel.app" }],
+        destination: `${CANONICAL}/:path*`,
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
