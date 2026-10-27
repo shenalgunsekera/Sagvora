@@ -1,9 +1,14 @@
 /**
- * Client logos for the "Trusted by" carousel → public/clients/*.webp
+ * Client logos for the "Trusted by" strip.
+ *
+ *   public/clients/color/*.webp  the logo as the client ships it
+ *   public/clients/*.webp        a single-colour paper version for the dark strip
  *
  * Sources are the original files in each client project on D:. Each logo is
- * trimmed of its padding and capped at 240px tall, keeping transparency. Logos
- * that are a square badge on their own background are kept whole.
+ * trimmed of its padding and capped at 240px tall, keeping transparency. The
+ * mono version keeps the logo's shape and turns its white parts (text knocked
+ * out of a badge, a white background) into holes, so every mark sits directly
+ * on the page in one colour instead of on a white tile.
  *
  *   node scripts/prepare-client-logos.mjs
  */
@@ -12,7 +17,25 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT = path.join(process.cwd(), "public", "clients");
-fs.mkdirSync(OUT, { recursive: true });
+fs.mkdirSync(path.join(OUT, "color"), { recursive: true });
+
+/** Paper-coloured silhouette: alpha follows ink, near-white becomes a hole. */
+async function mono(buf, { knockDark = false, inkWhite = false } = {}) {
+  const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const min = Math.min(data[i], data[i + 1], data[i + 2]);
+    const max = Math.max(data[i], data[i + 1], data[i + 2]);
+    const whiteness = Math.min(1, Math.max(0, (min - 190) / 50));
+    // Badges whose mark is drawn in white on a colour field keep the white.
+    let ink = inkWhite ? whiteness : 1 - whiteness; // otherwise white → hole
+    if (knockDark) ink *= Math.min(1, Math.max(0, (max - 28) / 30)); // badge backdrop → hole
+    data[i + 3] = Math.round(data[i + 3] * ink);
+    data[i] = 244;
+    data[i + 1] = 244;
+    data[i + 2] = 240;
+  }
+  return sharp(data, { raw: info }).trim({ threshold: 1 }).png().toBuffer();
+}
 
 const PMF_BANNER = "D:/PMF/pmf-website/public/pmf-logo.png"; // Ceilao | PMF co-brand, 1200×400
 
@@ -24,10 +47,10 @@ const LOGOS = [
   { slug: "insureme", src: "D:/Insurance Project/insuremelk-frontend/src/insureme-logo.png" },
   { slug: "power-mate", src: "D:/Shenals Portfolio/public/assets/img/powermate-logo.png" },
   { slug: "sterling", src: "D:/Shenals Portfolio/company logos/Sterling Automobiles  back-01.png" },
-  { slug: "galactic-arcade", src: "D:/Shenals Portfolio/public/assets/img/galactic-logo.png", badge: true },
+  { slug: "galactic-arcade", src: "D:/Shenals Portfolio/public/assets/img/galactic-logo.png", badge: true, mono: { inkWhite: true } },
   { slug: "kids-and-teens", src: "D:/Kids and Teens/public/logo.png" },
   { slug: "the-ascend", src: "D:/TheAscend/theascend/Final-Logo.png" },
-  { slug: "with-purpose", src: "D:/WithPurposeAcademy/WithPurpose_Logo.webp", badge: true },
+  { slug: "with-purpose", src: "D:/WithPurposeAcademy/WithPurpose_Logo.webp", badge: true, mono: { inkWhite: true } },
   { slug: "my-banker", src: "D:/Upwork/banker-experts/frontend/src/assets/images/Logo.png" },
   // The Adaptis mark ships white for dark UI; recolour it for light tiles.
   {
@@ -61,10 +84,13 @@ for (const l of LOGOS) {
     }
     // Trim padding (white or transparent edges) unless the logo is a full badge.
     if (!l.badge) buf = await sharp(buf).trim({ threshold: 18 }).png().toBuffer();
-    const out = await sharp(buf)
-      .resize({ height: 240, width: 640, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 90, alphaQuality: 100 })
-      .toFile(path.join(OUT, `${l.slug}.webp`));
+    const save = (b, file) =>
+      sharp(b)
+        .resize({ height: 240, width: 640, fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 90, alphaQuality: 100 })
+        .toFile(file);
+    await save(buf, path.join(OUT, "color", `${l.slug}.webp`));
+    const out = await save(await mono(buf, l.mono), path.join(OUT, `${l.slug}.webp`));
     console.log(`  ${l.slug.padEnd(16)} ${out.width}×${out.height}  ${(out.size / 1024).toFixed(1)} KB`);
   } catch (e) {
     console.warn(`  ! ${l.slug}: ${e.message}`);

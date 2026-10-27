@@ -46,7 +46,7 @@ export default function ContactForm() {
       <div
         role="status"
         aria-live="polite"
-        className="panel ticks flex min-h-[24rem] flex-col items-start justify-center gap-5 p-10"
+        className="panel ticks flex min-h-[24rem] flex-col items-start justify-center gap-5 p-7 md:p-10"
       >
         <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true" className="text-signal">
           <circle cx="23" cy="23" r="22" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.35" />
@@ -78,7 +78,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel p-8 md:p-10" noValidate>
+    <form onSubmit={onSubmit} className="panel p-6 sm:p-8 md:p-10" noValidate>
       {/* Honeypot — hidden from people, irresistible to bots. */}
       <input
         type="text"
@@ -143,7 +143,11 @@ export default function ContactForm() {
         <p className="index max-w-xs leading-relaxed">
           No sales sequence. No newsletter. One reply from a person.
         </p>
-        <button type="submit" disabled={status === "sending"} className="btn btn-solid">
+        <button
+          type="submit"
+          disabled={status === "sending"}
+          className="btn btn-solid w-full justify-between sm:w-auto sm:justify-start"
+        >
           <span>{status === "sending" ? "Sending" : "Send message"}</span>
           <span className="btn-arrow">→</span>
         </button>

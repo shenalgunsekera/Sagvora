@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Glyph from "@/components/fx/Glyph";
 import SheenCard from "@/components/fx/SheenCard";
+import SwipeDots from "@/components/fx/SwipeDots";
 import { PerspectiveGrid } from "@/components/fx/backdrops";
 import SectionHeader from "./SectionHeader";
 import type { Service, SiteSettings } from "@/lib/types";
@@ -25,14 +26,17 @@ export default function Capabilities({
         lead={settings.servicesLead}
       />
 
-      <div className="shell relative mt-20">
+      <div className="shell relative mt-10 md:mt-20">
         {/* Hairline matrix: the gaps are the rules. */}
-        <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          id="capability-cards"
+          className="swipe grid gap-px sm:border sm:border-line sm:bg-line sm:grid-cols-2 lg:grid-cols-3"
+        >
           {services.map((s, i) => (
-            <SheenCard key={s.id} className="group relative bg-ink-0">
+            <SheenCard key={s.id} className="group relative border border-line bg-ink-0 sm:border-0">
               <Link
                 href={`/capabilities/${s.slug}`}
-                className="relative flex h-full min-h-[19rem] flex-col justify-between overflow-hidden p-8 md:p-9"
+                className="relative flex h-full min-h-[19rem] flex-col justify-between overflow-hidden p-7 md:p-9"
                 data-reveal="up"
                 style={{ ["--reveal-delay" as string]: `${(i % 3) * 90}ms` }}
               >
@@ -106,10 +110,10 @@ export default function Capabilities({
           ))}
 
           {/* Closes the grid and gives the section somewhere to go. */}
-          <SheenCard className="group relative bg-ink-0">
+          <SheenCard className="group relative border border-line bg-ink-0 sm:border-0">
             <Link
               href="/#contact"
-              className="relative flex h-full min-h-[19rem] flex-col justify-between p-8 md:p-9"
+              className="relative flex h-full min-h-[19rem] flex-col justify-between p-7 md:p-9"
               data-reveal="up"
             >
               <span className="index">{String(services.length + 1).padStart(2, "0")}</span>
@@ -138,6 +142,7 @@ export default function Capabilities({
             <div key={`sm${i}`} className="hidden bg-ink-0 sm:block lg:hidden" aria-hidden="true" />
           ))}
         </div>
+        <SwipeDots target="capability-cards" count={services.length + 1} />
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CircuitBackdrop } from "@/components/fx/backdrops";
 import SplitText from "@/components/fx/SplitText";
+import SwipeDots from "@/components/fx/SwipeDots";
 import { clamp } from "@/components/fx/motion";
 import type { SiteSettings, Stage } from "@/lib/types";
 
@@ -80,7 +81,7 @@ export default function Ladder({
           </span>
         </div>
         <div className="mt-5 h-px w-full bg-line" data-reveal="rule" />
-        <div className="mt-10 grid gap-8 md:grid-cols-12">
+        <div className="mt-8 grid gap-6 md:mt-10 md:grid-cols-12 md:gap-8">
           <SplitText
             as="h2"
             text={settings.ladderTitle}
@@ -97,7 +98,7 @@ export default function Ladder({
       </div>
 
       {/* Rail + stages */}
-      <div className="shell relative mt-24 grid gap-12 lg:grid-cols-12 lg:gap-16">
+      <div className="shell relative mt-12 grid gap-12 md:mt-24 lg:grid-cols-12 lg:gap-16">
         {/* Sticky rail */}
         <nav className="hidden lg:col-span-3 lg:block" aria-label="Transformation stages">
           <div className="sticky top-32">
@@ -154,8 +155,9 @@ export default function Ladder({
           </div>
         </nav>
 
-        {/* Stage panels */}
-        <div className="flex flex-col gap-6 lg:col-span-9">
+        {/* Stage panels — a swipe row on phones */}
+        <div className="min-w-0 lg:col-span-9">
+        <div id="stages" className="swipe flex flex-col gap-6">
           {stages.map((s, i) => (
             <div
               key={s.id}
@@ -163,7 +165,7 @@ export default function Ladder({
                 panelRefs.current[i] = el;
               }}
               data-index={i}
-              className="group panel ticks relative overflow-hidden p-8 transition-colors duration-700 md:p-12"
+              className="group panel ticks relative overflow-hidden p-6 transition-colors duration-700 sm:p-8 md:p-12"
               style={{
                 borderColor:
                   i === active ? "var(--color-line-strong)" : "var(--color-line)",
@@ -191,7 +193,7 @@ export default function Ladder({
                   <p className="mt-4 max-w-xl text-paper-45">{s.subtitle}</p>
                 )}
 
-                <div className="mt-9 grid gap-10 md:grid-cols-12">
+                <div className="mt-7 grid gap-8 md:mt-9 md:grid-cols-12 md:gap-10">
                   <ul className="flex flex-col gap-3 md:col-span-7">
                     {s.bullets.map((b, bi) => (
                       <li key={bi} className="flex gap-4 text-paper-80">
@@ -246,6 +248,8 @@ export default function Ladder({
               </div>
             </div>
           ))}
+        </div>
+        <SwipeDots target="stages" count={stages.length} />
         </div>
       </div>
     </section>

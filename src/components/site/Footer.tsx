@@ -7,14 +7,14 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-clip border-t border-line pt-20">
-      <div className="shell grid gap-12 pb-16 md:grid-cols-12">
-        <div className="md:col-span-5">
+    <footer className="relative overflow-clip border-t border-line pt-14 md:pt-20">
+      <div className="shell grid grid-cols-2 gap-x-6 gap-y-10 pb-12 md:grid-cols-12 md:gap-12 md:pb-16">
+        <div className="col-span-2 md:col-span-5">
           <Wordmark className="text-[1.6rem]" />
           <p className="mt-6 max-w-xs text-paper-45">{settings.footerNote}</p>
         </div>
 
-        <nav className="md:col-span-3">
+        <nav className="col-span-1 md:col-span-3">
           <div className="kicker">Site</div>
           <ul className="mt-5 flex flex-col gap-3">
             {[
@@ -33,12 +33,12 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
           </ul>
         </nav>
 
-        <div className="md:col-span-4">
+        <div className="col-span-1 min-w-0 md:col-span-4">
           <div className="kicker">Direct</div>
           <ul className="mt-5 flex flex-col gap-3">
             {settings.contactName && <li className="text-paper">{settings.contactName}</li>}
             <li>
-              <a href={`mailto:${settings.email}`} className="link-wipe text-paper-60 hover:text-paper">
+              <a href={`mailto:${settings.email}`} className="link-wipe break-all text-paper-60 hover:text-paper">
                 {settings.email}
               </a>
             </li>
@@ -74,7 +74,7 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
       </div>
 
       {/* Oversized band — the sign-off */}
-      <div className="border-t border-line py-10">
+      <div className="border-t border-line py-6 md:py-10">
         <Marquee duration={38}>
           <span className="wordmark whitespace-nowrap px-6 text-[clamp(3.5rem,11vw,10rem)] leading-none text-white/[0.055]">
             Automate · Assist · Execute · Workforce · Evolve ·
@@ -82,17 +82,17 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
         </Marquee>
       </div>
 
-      <div className="shell flex flex-col gap-3 border-t border-line py-7 sm:flex-row sm:items-center sm:justify-between">
+      <div className="shell flex flex-col gap-2 border-t border-line py-6 sm:flex-row sm:items-center sm:justify-between md:py-7">
         <span className="index">
           © {year} {settings.brandName} {settings.brandSuffix}. All rights reserved.
         </span>
         <div className="flex items-center gap-6">
-          <span className="index">{settings.tagline}</span>
+          <span className="index hidden md:inline">{settings.tagline}</span>
           <Link href="/admin" className="index transition-colors duration-500 hover:text-paper">
             Admin
           </Link>
           <a href="#main" className="index transition-colors duration-500 hover:text-paper">
-            Back to top ↑
+            Top ↑
           </a>
         </div>
       </div>

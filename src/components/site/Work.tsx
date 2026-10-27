@@ -20,7 +20,7 @@ export default function Work({
         lead={settings.workLead}
       />
 
-      <div className="shell mt-20">
+      <div className="shell mt-10 md:mt-20">
         <WorkList projects={projects} />
       </div>
     </section>

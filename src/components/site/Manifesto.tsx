@@ -8,7 +8,7 @@ export default function Manifesto({ settings }: { settings: SiteSettings }) {
     <section id="position" className="section relative overflow-clip">
       <div className="ruled" aria-hidden="true" />
 
-      <div className="shell relative grid gap-14 lg:grid-cols-12 lg:gap-16">
+      <div className="shell relative grid gap-10 lg:grid-cols-12 lg:gap-16">
         {/* Sticky column */}
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-32">
@@ -24,11 +24,11 @@ export default function Manifesto({ settings }: { settings: SiteSettings }) {
             <SplitText
               as="h2"
               text={settings.manifestoTitle}
-              className="display-md mt-8 text-paper"
+              className="display-md mt-6 text-paper md:mt-8"
             />
 
             <p
-              className="mt-8 max-w-sm text-paper-45"
+              className="mt-5 max-w-sm text-paper-45 md:mt-8"
               data-reveal="up"
               style={{ ["--reveal-delay" as string]: "200ms" }}
             >
@@ -64,7 +64,7 @@ export default function Manifesto({ settings }: { settings: SiteSettings }) {
                 aria-hidden="true"
               />
 
-              <div className="relative flex items-start gap-6 py-6 transition-[padding] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:pl-4 md:gap-8 md:py-7">
+              <div className="relative flex items-start gap-5 py-4 transition-[padding] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:pl-4 md:gap-8 md:py-7">
                 <span className="index pt-2 transition-colors duration-500 group-hover:text-signal">
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -78,7 +78,7 @@ export default function Manifesto({ settings }: { settings: SiteSettings }) {
                   width="22"
                   height="22"
                   viewBox="0 0 22 22"
-                  className="mt-2 shrink-0 text-signal"
+                  className="mt-2 hidden shrink-0 text-signal md:block"
                   aria-hidden="true"
                 >
                   <path

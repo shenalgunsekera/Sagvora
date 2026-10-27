@@ -6,7 +6,7 @@ export default function Metrics({ settings }: { settings: SiteSettings }) {
   const items = settings.metrics ?? [];
 
   return (
-    <section className="relative overflow-clip border-y border-line bg-ink-1 py-20">
+    <section className="relative overflow-clip border-y border-line bg-ink-1 py-14 md:py-20">
       {/* Ambient wordmark band behind the numbers */}
       <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 opacity-[0.028]">
         <Marquee duration={64}>
@@ -22,7 +22,7 @@ export default function Metrics({ settings }: { settings: SiteSettings }) {
       </div>
 
       {items.length > 0 && (
-        <div className="shell relative grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="shell relative grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4">
           {items.map((m, i) => (
             <div
               key={`${m.label}-${i}`}
@@ -30,10 +30,10 @@ export default function Metrics({ settings }: { settings: SiteSettings }) {
               data-reveal="up"
               style={{ ["--reveal-delay" as string]: `${i * 110}ms` }}
             >
-              <div className="font-[family-name:var(--font-display)] text-[clamp(2.5rem,5vw,4rem)] font-bold leading-none tracking-[-0.04em] text-paper">
+              <div className="font-[family-name:var(--font-display)] text-[clamp(2.125rem,5vw,4rem)] font-bold leading-none tracking-[-0.04em] text-paper">
                 <Counter value={m.value} prefix={m.prefix} suffix={m.suffix} />
               </div>
-              <div className="mt-4 max-w-[16rem] text-sm leading-snug text-paper-45">
+              <div className="mt-3 max-w-[16rem] text-[0.8125rem] leading-snug text-paper-45 md:mt-4 md:text-sm">
                 {m.label}
               </div>
             </div>

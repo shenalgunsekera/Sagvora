@@ -15,14 +15,14 @@ export default function WorkList({ projects }: { projects: Project[] }) {
   const reel = useReel();
 
   return (
-    <div className="flex flex-col gap-24 md:gap-32">
+    <div className="flex flex-col gap-20 md:gap-32">
       {projects.map((p, i) => {
         const flip = i % 2 === 1;
         const accent = p.accent ?? "var(--color-signal)";
         return (
           <article
             key={p.id}
-            className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14"
+            className="grid items-center gap-7 lg:grid-cols-12 lg:gap-14"
             style={{ ["--accent" as string]: accent }}
             data-reveal="up"
           >
@@ -65,11 +65,11 @@ export default function WorkList({ projects }: { projects: Project[] }) {
                 {p.year && <span className="index">{p.year}</span>}
               </div>
 
-              <h3 className="display-md mt-8 leading-[1.05] text-paper">{p.title}</h3>
-              <p className="mt-6 leading-relaxed text-paper-60">{p.summary}</p>
+              <h3 className="display-md mt-5 leading-[1.05] text-paper md:mt-8">{p.title}</h3>
+              <p className="mt-4 leading-relaxed text-paper-60 md:mt-6">{p.summary}</p>
 
               {p.metrics.length > 0 && (
-                <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-line pt-6">
+                <dl className="mt-6 grid grid-cols-3 gap-4 border-t border-line pt-5 md:mt-8 md:pt-6">
                   {p.metrics.slice(0, 3).map((m) => (
                     <div key={m.label}>
                       <dt className="sr-only">{m.label}</dt>
@@ -97,7 +97,7 @@ export default function WorkList({ projects }: { projects: Project[] }) {
                 </ul>
               )}
 
-              <div className="mt-9 flex flex-wrap gap-3">
+              <div className="btn-row mt-8 flex flex-wrap gap-3 md:mt-9">
                 {p.video && (
                   <button
                     type="button"

@@ -23,7 +23,7 @@ export default function ImageBand({
   return (
     <section
       className={`relative overflow-clip ${
-        height === "tall" ? "h-[68svh] min-h-[26rem]" : "h-[44svh] min-h-[18rem]"
+        height === "tall" ? "h-[52svh] min-h-[22rem] md:h-[68svh] md:min-h-[26rem]" : "h-[44svh] min-h-[18rem]"
       }`}
     >
       {/* The source photography is already near-black, so it needs lifting
@@ -61,7 +61,7 @@ export default function ImageBand({
       <div className="absolute inset-x-0 top-0 h-px bg-line" aria-hidden="true" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-line" aria-hidden="true" />
 
-      <div className="relative flex h-full items-end pb-12">
+      <div className="relative flex h-full items-end pb-9 md:pb-12">
         <div className="shell">
           <div className="flex items-center gap-4" data-reveal="fade">
             <span className="h-px w-8 bg-cool" />

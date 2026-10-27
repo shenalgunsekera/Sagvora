@@ -33,8 +33,8 @@ export default function SectionHeader({ index, kicker, title, lead, align = "spl
       <div
         className={
           align === "split"
-            ? "mt-10 grid gap-8 md:grid-cols-12 md:gap-12"
-            : "mt-10 max-w-4xl"
+            ? "mt-8 grid gap-6 md:mt-10 md:grid-cols-12 md:gap-12"
+            : "mt-8 max-w-4xl md:mt-10"
         }
       >
         <SplitText

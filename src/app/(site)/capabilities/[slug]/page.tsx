@@ -9,6 +9,11 @@ import { getServiceBySlug, getServices, getSettings, getStages } from "@/lib/que
 
 type Params = { params: Promise<{ slug: string }> };
 
+/** Prebuilt at deploy; a slug added later in admin renders on first visit. */
+export async function generateStaticParams() {
+  return (await getServices()).map((s) => ({ slug: s.slug }));
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const service = await getServiceBySlug(slug);

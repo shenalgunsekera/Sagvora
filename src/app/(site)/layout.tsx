@@ -6,8 +6,10 @@ import Footer from "@/components/site/Footer";
 import Nav from "@/components/site/Nav";
 import { getSettings } from "@/lib/queries";
 
-// Content is editable from /admin, so pages always read the current store.
-export const dynamic = "force-dynamic";
+// Pages are rendered once and served from the CDN. Every admin save calls
+// revalidatePath("/", "layout"), which rebuilds them on the next visit, so
+// edits still show straight away; the hour is only a safety net.
+export const revalidate = 3600;
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
@@ -79,7 +81,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         Skip to content
       </a>
 
-      <Nav />
+      <Nav email={settings.email} phone={settings.phone} />
       <main id="main">{children}</main>
       <Footer settings={settings} />
     </>

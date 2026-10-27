@@ -12,7 +12,7 @@ const LINKS = [
   { label: "Contact", href: "/#contact" },
 ];
 
-export default function Nav() {
+export default function Nav({ email, phone }: { email?: string; phone?: string }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -170,28 +170,55 @@ export default function Nav() {
           pointerEvents: open ? "auto" : "none",
         }}
       >
-        <div className="flex h-full flex-col justify-between px-[var(--spacing-gutter)] pb-14 pt-32">
-          <nav className="flex flex-col gap-2">
+        <div className="flex h-full flex-col justify-between overflow-y-auto px-[var(--spacing-gutter)] pb-[max(2rem,env(safe-area-inset-bottom))] pt-28">
+          <nav className="flex flex-col border-t border-line">
             {LINKS.map((l, i) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={(e) => goTo(e, l.href)}
-                className="display-md wordmark overflow-hidden py-2 text-paper"
+                className="flex items-baseline gap-5 overflow-hidden border-b border-line py-5 text-paper"
               >
                 <span
-                  className="inline-block transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  className="flex items-baseline gap-5 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
                   style={{
-                    transform: open ? "translateY(0)" : "translateY(110%)",
+                    transform: open ? "translateY(0)" : "translateY(120%)",
                     transitionDelay: `${180 + i * 70}ms`,
                   }}
                 >
-                  {l.label}
+                  <span className="index">0{i + 1}</span>
+                  <span className="wordmark text-[2.75rem]">{l.label}</span>
                 </span>
               </Link>
             ))}
           </nav>
-          <div className="kicker">Sagvora Innovations · Colombo</div>
+
+          <div
+            className="mt-10 transition-opacity duration-700"
+            style={{ opacity: open ? 1 : 0, transitionDelay: open ? "480ms" : "0ms" }}
+          >
+            <Link
+              href="/#contact"
+              onClick={(e) => goTo(e, "/#contact")}
+              className="btn btn-solid w-full justify-between"
+            >
+              <span>Start a transformation</span>
+              <span className="btn-arrow">→</span>
+            </Link>
+            <div className="mt-6 flex flex-col gap-1">
+              {email && (
+                <a href={`mailto:${email}`} className="text-paper-60">
+                  {email}
+                </a>
+              )}
+              {phone && (
+                <a href={`tel:${phone.replace(/s/g, "")}`} className="text-paper-60">
+                  {phone}
+                </a>
+              )}
+              <span className="kicker mt-4">Sagvora Innovations · Colombo</span>
+            </div>
+          </div>
         </div>
       </div>
     </>

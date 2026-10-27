@@ -7,7 +7,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
   return (
     <section
       id="top"
-      className="relative flex min-h-[100svh] flex-col justify-end overflow-clip pb-16 pt-32"
+      className="relative flex min-h-[100svh] flex-col justify-end overflow-clip pb-10 pt-28 md:pb-16 md:pt-32"
     >
       {/* Interactive lattice */}
       <div className="absolute inset-0">
@@ -50,7 +50,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
         </div>
 
         {/* The wordmark, character by character */}
-        <h1 className="mt-6">
+        <h1 className="mt-5 md:mt-6">
           <SplitText
             text={settings.heroHeadline}
             mode="chars"
@@ -62,7 +62,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
         </h1>
 
         {/* Baseline row: lead + CTAs */}
-        <div className="mt-10 grid gap-10 border-t border-line pt-8 md:grid-cols-12 md:gap-8">
+        <div className="mt-8 grid gap-8 border-t border-line pt-7 md:mt-10 md:grid-cols-12 md:gap-8 md:pt-8">
           <p
             className="lead md:col-span-6 lg:col-span-5"
             data-reveal="up"
@@ -72,7 +72,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
           </p>
 
           <div
-            className="flex flex-wrap items-start gap-4 md:col-span-6 md:justify-end lg:col-span-7"
+            className="btn-row flex flex-wrap items-start gap-4 md:col-span-6 md:justify-end lg:col-span-7"
             data-reveal="up"
             style={{ ["--reveal-delay" as string]: "620ms" }}
           >

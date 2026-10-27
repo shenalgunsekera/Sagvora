@@ -29,3 +29,4 @@ data/*.bak-*
 
 .vercel
 .env*
+.next-build/

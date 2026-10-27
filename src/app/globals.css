@@ -216,6 +216,14 @@ video {
   font-variation-settings: "wdth" 86;
   letter-spacing: -0.03em;
 }
+@media (max-width: 767px) {
+  /* The wordmark spans the phone screen edge to edge, condensed like the lockup. */
+  .display-xl {
+    font-size: 23.5vw;
+    font-variation-settings: "wdth" 72;
+    letter-spacing: -0.02em;
+  }
+}
 
 .display-lg {
   font-size: clamp(2.5rem, 7vw, 6rem);
@@ -262,6 +270,70 @@ video {
 .section {
   position: relative;
   padding-block: var(--spacing-section);
+}
+
+/* ==========================================================================
+   Phones — tighter rhythm, full-width actions, swipe rows
+   ========================================================================== */
+
+@media (max-width: 767px) {
+  .section {
+    padding-block: 4.5rem;
+  }
+
+  /* Buttons in an action row share the full width instead of ragged widths. */
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  .btn-row > *,
+  .btn-row .btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* A row that becomes a horizontal, snapping carousel on phones and a normal
+   grid from `sm` up. Bleeds to the screen edge so the next card peeks in. */
+@media (max-width: 639px) {
+  .swipe {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: var(--spacing-gutter);
+    margin-inline: calc(var(--spacing-gutter) * -1);
+    padding-inline: var(--spacing-gutter);
+    gap: 0.75rem;
+    scrollbar-width: none;
+  }
+  .swipe::-webkit-scrollbar {
+    display: none;
+  }
+  .swipe > * {
+    flex: 0 0 84%;
+    scroll-snap-align: start;
+  }
+}
+
+.swipe-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.swipe-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-line-strong);
+  transition: width 400ms var(--ease-expo), background-color 400ms var(--ease-soft);
+}
+.swipe-dots span[data-on] {
+  width: 20px;
+  background: var(--color-signal);
 }
 
 .hairline {
@@ -918,65 +990,30 @@ a:hover .reel-prompt {
   to { transform: translate3d(-50%, 0, 0); }
 }
 
-.client-tile {
+.clients-list {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: clamp(2.75rem, 7vw, 5.5rem);
+  padding-right: clamp(2.75rem, 7vw, 5.5rem);
+}
+.client {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 13.5rem;
-  height: 7.5rem;
-  padding: 1.25rem 1.6rem;
-  border-radius: 6px;
-  background: var(--color-paper);
-  transition: transform 600ms var(--ease-expo), box-shadow 600ms var(--ease-expo);
+  height: clamp(2.75rem, 6vw, 3.75rem);
 }
-.client-tile img {
-  /* Explicit caps: square badges must fit the 7.5rem tile, not their natural size. */
+.client img {
+  /* Mono marks share one height; wide wordmarks are capped so they don't dominate. */
   width: auto;
-  height: auto;
-  max-width: 10.25rem;
-  max-height: 4.75rem;
+  height: 100%;
+  max-width: clamp(7rem, 22vw, 10.5rem);
   object-fit: contain;
-  transition: filter 500ms var(--ease-soft), opacity 500ms var(--ease-soft);
+  opacity: 0.62;
+  transition: opacity 500ms var(--ease-soft), transform 600ms var(--ease-expo);
 }
-@media (hover: hover) {
-  /* Calm, uniform strip at rest; each logo takes its own colour on hover. */
-  .client-tile img {
-    filter: grayscale(1) contrast(1.05);
-    opacity: 0.72;
-  }
-  .client:hover .client-tile img,
-  .client:focus-visible .client-tile img {
-    filter: none;
-    opacity: 1;
-  }
-  .client:hover .client-tile {
-    transform: translate3d(0, -4px, 0);
-    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .clients-track {
-    animation: none;
-    flex-wrap: wrap;
-    width: auto;
-    justify-content: center;
-  }
-  .clients-track > [aria-hidden="true"] {
-    display: none;
-  }
+.client:hover img,
+.client:focus-visible img {
+  opacity: 1;
+  transform: translate3d(0, -2px, 0);
 }
 
-/* ==========================================================================
-   Touch targets — small text links get a ≥44px tall hit area on touch
-   screens without changing how they look.
-   ========================================================================== */
-
-@media (pointer: coarse) {
-  footer a,
-  #contact a,
-  a.link-wipe.index {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-}

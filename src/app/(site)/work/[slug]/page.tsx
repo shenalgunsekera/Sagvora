@@ -9,6 +9,11 @@ import { getProjectBySlug, getProjects, getStages } from "@/lib/queries";
 
 type Params = { params: Promise<{ slug: string }> };
 
+/** Prebuilt at deploy; a slug added later in admin renders on first visit. */
+export async function generateStaticParams() {
+  return (await getProjects()).map((p) => ({ slug: p.slug }));
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);

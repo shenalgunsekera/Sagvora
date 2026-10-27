@@ -10,6 +10,8 @@ const CANONICAL = siteUrl();
 const canonicalHost = new URL(CANONICAL).host;
 
 const nextConfig: NextConfig = {
+  // Lets a production build run beside `next dev` without sharing .next.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ["firebase-admin", "bcryptjs"],
   images: {
     // Uploads are served from /media/... (Firestore) and are already sized by
