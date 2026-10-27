@@ -91,7 +91,7 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
           <Link href="/admin" className="index transition-colors duration-500 hover:text-paper">
             Admin
           </Link>
-          <a href="#top" className="index transition-colors duration-500 hover:text-paper">
+          <a href="#main" className="index transition-colors duration-500 hover:text-paper">
             Back to top ↑
           </a>
         </div>

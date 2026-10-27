@@ -173,6 +173,26 @@ export default async function SettingsAdmin() {
           </Field>
         </Group>
 
+        <Group title="Clients (logo strip)">
+          <Field label="Kicker">
+            <input name="clientsKicker" defaultValue={s.clientsKicker} className="admin-input" />
+          </Field>
+          <Field label="Title">
+            <input name="clientsTitle" defaultValue={s.clientsTitle} className="admin-input" />
+          </Field>
+          <PairEditor
+            name="clients"
+            label="Companies"
+            hint="Logo: upload in Media and paste its URL, or a path like /clients/name.webp. Link is optional."
+            initial={s.clients}
+            fields={[
+              { key: "name", placeholder: "Company" },
+              { key: "logo", placeholder: "/clients/logo.webp", width: "2 1 0" },
+              { key: "url", placeholder: "https://… (optional)", width: "2 1 0" },
+            ]}
+          />
+        </Group>
+
         <Group title="Work section">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Kicker">

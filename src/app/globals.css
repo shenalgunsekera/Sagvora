@@ -78,6 +78,8 @@
 html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
+  /* Section links land below the fixed 5rem header, not under it. */
+  scroll-padding-top: 5.5rem;
 }
 
 body {
@@ -104,26 +106,31 @@ body[data-locked="true"] {
   overflow: hidden;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 0.94;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
+/* Element defaults live in the base layer. Unlayered, they outranked every
+   Tailwind utility, so spacing like mt-6 on a heading or paragraph was
+   silently dropped across the site. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
 
-p {
-  margin: 0;
-  text-wrap: pretty;
-}
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 button {
@@ -869,4 +876,107 @@ a:hover .reel-prompt {
 @keyframes reel-ping {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, var(--color-signal)) 50%, transparent); }
   70%, 100% { box-shadow: 0 0 0 1.4rem transparent; }
+}
+
+/* ==========================================================================
+   Work feature cards (components/site/WorkList.tsx)
+   ========================================================================== */
+
+.work-media {
+  border: 1px solid var(--color-line-strong);
+  box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.8);
+  transition:
+    border-color 500ms var(--ease-soft),
+    box-shadow 700ms var(--ease-expo),
+    transform 700ms var(--ease-expo);
+}
+.work-media:hover,
+.work-media:focus-visible {
+  border-color: color-mix(in srgb, var(--accent, var(--color-signal)) 60%, transparent);
+  box-shadow: 0 40px 100px -40px color-mix(in srgb, var(--accent, var(--color-signal)) 55%, transparent);
+  transform: translate3d(0, -4px, 0);
+}
+
+/* ==========================================================================
+   Client logo carousel (components/site/Clients.tsx)
+   ========================================================================== */
+
+.clients-viewport {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.clients-track {
+  display: flex;
+  width: max-content;
+  animation: clients-scroll var(--clients-duration, 45s) linear infinite;
+}
+.clients-viewport:hover .clients-track,
+.clients-viewport:focus-within .clients-track {
+  animation-play-state: paused;
+}
+@keyframes clients-scroll {
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+.client-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13.5rem;
+  height: 7.5rem;
+  padding: 1.25rem 1.6rem;
+  border-radius: 6px;
+  background: var(--color-paper);
+  transition: transform 600ms var(--ease-expo), box-shadow 600ms var(--ease-expo);
+}
+.client-tile img {
+  /* Explicit caps: square badges must fit the 7.5rem tile, not their natural size. */
+  width: auto;
+  height: auto;
+  max-width: 10.25rem;
+  max-height: 4.75rem;
+  object-fit: contain;
+  transition: filter 500ms var(--ease-soft), opacity 500ms var(--ease-soft);
+}
+@media (hover: hover) {
+  /* Calm, uniform strip at rest; each logo takes its own colour on hover. */
+  .client-tile img {
+    filter: grayscale(1) contrast(1.05);
+    opacity: 0.72;
+  }
+  .client:hover .client-tile img,
+  .client:focus-visible .client-tile img {
+    filter: none;
+    opacity: 1;
+  }
+  .client:hover .client-tile {
+    transform: translate3d(0, -4px, 0);
+    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clients-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+  }
+  .clients-track > [aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Touch targets — small text links get a ≥44px tall hit area on touch
+   screens without changing how they look.
+   ========================================================================== */
+
+@media (pointer: coarse) {
+  footer a,
+  #contact a,
+  a.link-wipe.index {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
 }

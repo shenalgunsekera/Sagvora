@@ -108,6 +108,26 @@ export default function MotionRoot() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
+    /* ---------------------------------------------------------- in-page links */
+    // Same-page anchors (#contact, /#work while on /) are scrolled here rather
+    // than left to the router: its smooth scroll stalled part-way down this
+    // long page on phones, leaving visitors short of the section. Runs in the
+    // capture phase so the router never sees the click. The header and mobile
+    // menu handle their own (they also close the menu first).
+    const onAnchorClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target === "_blank" || a.closest("header, #mobile-menu")) return;
+      const url = new URL(a.href, location.href);
+      if (url.origin !== location.origin || url.pathname !== location.pathname || !url.hash) return;
+      const target = document.getElementById(decodeURIComponent(url.hash.slice(1)));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      history.replaceState(null, "", url.hash);
+    };
+    document.addEventListener("click", onAnchorClick, true);
+
     const cleanup = () => {
       observer.disconnect();
       loops.disconnect();
@@ -116,6 +136,7 @@ export default function MotionRoot() {
       cancelAnimationFrame(scrollRaf);
       window.removeEventListener("resize", setVh);
       window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("click", onAnchorClick, true);
     };
 
     /* ---------------------------------------------------------- magnetic */

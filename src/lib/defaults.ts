@@ -46,6 +46,22 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   servicesLead:
     "Every engagement is assembled from these. Nothing is sold before the workflow that needs it is understood.",
 
+  clientsKicker: "Trusted by",
+  clientsTitle: "Companies we have built for",
+  clients: [
+    { name: "Ceilao Insurance Brokers", logo: "/clients/ceilao.webp", url: "" },
+    { name: "PMF Finance", logo: "/clients/pmf-finance.webp", url: "" },
+    { name: "Araksha Insurance Brokers", logo: "/clients/araksha.webp", url: "" },
+    { name: "InsureMe.lk", logo: "/clients/insureme.webp", url: "" },
+    { name: "Power Mate Investment", logo: "/clients/power-mate.webp", url: "" },
+    { name: "Sterling Automobiles", logo: "/clients/sterling.webp", url: "" },
+    { name: "Galactic Arcade", logo: "/clients/galactic-arcade.webp", url: "" },
+    { name: "Kids & Teens", logo: "/clients/kids-and-teens.webp", url: "" },
+    { name: "The Ascend", logo: "/clients/the-ascend.webp", url: "" },
+    { name: "With Purpose Academy", logo: "/clients/with-purpose.webp", url: "" },
+    { name: "My Banker", logo: "/clients/my-banker.webp", url: "" },
+    { name: "Adaptis", logo: "/clients/adaptis.webp", url: "" },
+  ],
   workKicker: "Selected Work",
   workTitle: "Proof, not promises",
   workLead:

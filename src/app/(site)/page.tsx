@@ -1,4 +1,5 @@
 import Capabilities from "@/components/site/Capabilities";
+import Clients from "@/components/site/Clients";
 import Contact from "@/components/site/Contact";
 import Hero from "@/components/site/Hero";
 import ImageBand from "@/components/site/ImageBand";
@@ -21,6 +22,7 @@ export default async function HomePage() {
     <>
       <OrganisationLd settings={settings} services={services} />
       <Hero settings={settings} />
+      <Clients settings={settings} />
       <Manifesto settings={settings} />
       {settings.bandImage && (
         <ImageBand

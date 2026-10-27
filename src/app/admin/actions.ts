@@ -248,6 +248,9 @@ export async function saveSettingsAction(formData: FormData) {
     servicesTitle: str(formData, "servicesTitle"),
     servicesLead: str(formData, "servicesLead"),
 
+    clientsKicker: str(formData, "clientsKicker"),
+    clientsTitle: str(formData, "clientsTitle"),
+    clients: json<SiteSettings["clients"]>(formData, "clients", current.clients).filter((c) => c.name && c.logo),
     workKicker: str(formData, "workKicker"),
     workTitle: str(formData, "workTitle"),
     workLead: str(formData, "workLead"),

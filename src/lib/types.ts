@@ -119,6 +119,10 @@ export type SiteSettings = {
   servicesKicker: string;
   servicesTitle: string;
   servicesLead: string;
+  clientsKicker: string;
+  clientsTitle: string;
+  /** Logo strip under the hero. `logo` is a path under /public or a /media URL. */
+  clients: { name: string; logo: string; url: string }[];
   workKicker: string;
   workTitle: string;
   workLead: string;

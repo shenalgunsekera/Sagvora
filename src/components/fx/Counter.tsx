@@ -11,7 +11,14 @@ type Props = {
   className?: string;
 };
 
-/** Counts up once, the first time it enters the viewport. */
+/**
+ * Counts up once, the first time it enters the viewport.
+ *
+ * The server renders the real number, so crawlers, link previews and no-JS
+ * visitors never read "0". Only a counter still below the fold is reset to 0
+ * on mount and animated in; one already on screen (or scrolled past) just
+ * shows its value.
+ */
 export default function Counter({
   value,
   prefix = "",
@@ -20,16 +27,16 @@ export default function Counter({
   className = "",
 }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState(0);
+  const [display, setDisplay] = useState(value);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    if (prefersReducedMotion()) {
-      setDisplay(value);
-      return;
-    }
+    setDisplay(value);
+    if (prefersReducedMotion()) return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return; // already seen
+    setDisplay(0);
 
     let frame = 0;
     const observer = new IntersectionObserver(

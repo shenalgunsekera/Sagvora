@@ -28,6 +28,29 @@ export default function Nav() {
 
   // Close the overlay on navigation and lock scroll while it is open.
   useEffect(() => setOpen(false), [pathname]);
+
+  /**
+   * Section links (/#work) on the home page don't change the pathname, so the
+   * effect above never closed the menu, and the scroll lock it holds swallowed
+   * the jump. Handle them here: close, release the lock, then scroll.
+   */
+  const goTo = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const [path, hash] = href.split("#");
+    if (!hash || (path || "/") !== pathname) {
+      setOpen(false);
+      return; // a different page: let the router navigate
+    }
+    const target = document.getElementById(hash);
+    if (!target) return;
+    e.preventDefault();
+    setOpen(false);
+    document.body.style.overflow = "";
+    // One frame later the lock is gone and the overlay has started to lift.
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", `#${hash}`);
+    });
+  };
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -96,12 +119,13 @@ export default function Nav() {
               <Link
                 key={l.href}
                 href={l.href}
+                onClick={(e) => goTo(e, l.href)}
                 className="link-wipe kicker transition-colors duration-500 hover:text-paper"
               >
                 {l.label}
               </Link>
             ))}
-            <Link href="/#contact" className="btn py-3">
+            <Link href="/#contact" onClick={(e) => goTo(e, "/#contact")} className="btn py-3">
               <span>Start</span>
               <span className="btn-arrow">→</span>
             </Link>
@@ -152,6 +176,7 @@ export default function Nav() {
               <Link
                 key={l.href}
                 href={l.href}
+                onClick={(e) => goTo(e, l.href)}
                 className="display-md wordmark overflow-hidden py-2 text-paper"
               >
                 <span
