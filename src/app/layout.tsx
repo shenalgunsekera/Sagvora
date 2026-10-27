@@ -1,26 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
+/* Fonts are self-hosted (latin variable files from Google Fonts in ./fonts).
+   next/font/google fetches them during every build, and a Google hiccup on
+   Vercel's build machine failed whole deploys. */
+
 /* Archivo carries a width axis, which is what lets the headings match the
    condensed Sagvora lockup without shipping a second display face. */
-const archivo = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
+const archivo = localFont({
+  src: "./fonts/archivo.woff2",
+  weight: "100 900",
+  declarations: [{ prop: "font-stretch", value: "62% 125%" }],
   variable: "--font-archivo",
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
+const inter = localFont({
+  src: "./fonts/inter.woff2",
+  weight: "100 900",
   variable: "--font-inter",
   display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const jetbrains = localFont({
+  src: "./fonts/jetbrains-mono.woff2",
+  weight: "400 500",
   variable: "--font-mono-jb",
   display: "swap",
 });
