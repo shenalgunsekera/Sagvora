@@ -35,3 +35,21 @@ The site plays web encodes from `/public/work/insuresaas/`
 npx remotion ffmpeg -i out/insuresaas-wide.mp4 -c:v libx264 -preset slow -crf 24 -movflags +faststart -c:a aac -b:a 160k ../public/work/insuresaas/reel-16x9.mp4
 npx remotion ffmpeg -i out/insuresaas-vertical.mp4 -c:v libx264 -preset slow -crf 25 -movflags +faststart -c:a aac -b:a 160k ../public/work/insuresaas/reel-9x16.mp4
 ```
+
+## Project reels (Ceilao, PMF, Araksha, The Ascend, ThatPokerAgent, Union Settlement)
+
+Six more 20-second reels share one kit (`src/kit/`): brand theme, real page
+captures, a config per project in `src/reels/`. Same 120 BPM grid as above.
+
+```bash
+cd capture && node sites.mjs [slug]        # retina captures + element boxes -> public/<slug>/
+# then make the metric-wall thumbnails: <page>-thumb.jpg (top 1440x900, 1120 wide)
+node render/reels.mjs music   [slug,...]   # per-reel sfx timeline + score in its own key
+node render/reels.mjs contact [slug,...]   # contact sheets -> out/contact/
+node render/reels.mjs render  [slug,...]   # 16:9 + 9:16 masters -> out/
+node render/reels.mjs web     [slug,...]   # site encodes + poster -> ../public/work/<slug>/
+```
+
+PMF's site isn't deployed; capture it from a local `next dev -p 3200` in
+`D:\PMF\pmf-website`. The APT booking flow is driven to the confirm button and
+never submitted.

@@ -1,9 +1,18 @@
 // Original 120 BPM score + UI sound design, synthesized sample by sample.
 // Reads the same timeline the video uses so every click, whoosh and impact
 // lands on the frame it belongs to. Output: public/music.wav (48 kHz stereo).
+//
+//   node audio/synth.mjs [timeline.json] [out.wav] [transpose]
+//
+// The project reels pass their own timeline (sfx on their own clicks) and a
+// transpose in semitones so each one has its own key.
 import fs from 'node:fs';
+import path from 'node:path';
 
-const T = JSON.parse(fs.readFileSync(new URL('../src/timeline.json', import.meta.url)));
+const [timelineArg, outArg, transposeArg] = process.argv.slice(2);
+const T = JSON.parse(fs.readFileSync(timelineArg ?? new URL('../src/timeline.json', import.meta.url)));
+const OUT = outArg ? path.resolve(outArg) : new URL('../public/music.wav', import.meta.url);
+const TR = Number(transposeArg) || 0;
 const SR = 48000;
 const LEN = T.durationInFrames / T.fps + 0.6; // small tail past the last frame
 const N = Math.ceil(LEN * SR);
@@ -80,8 +89,8 @@ const pop = (i) => render(0.12, (t) => Math.sin(2 * Math.PI * (500 + i * 70) * t
 
 // ── Arrangement ───────────────────────────────────────────────────────────
 // A minor: Am – F – C – G, one chord per bar (2 s).
-const CHORDS = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];
-const ROOTS = [33, 29, 36, 31];
+const CHORDS = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]].map((c) => c.map((m) => m + TR));
+const ROOTS = [33, 29, 36, 31].map((m) => m + TR);
 const bars = Math.ceil(LEN / (BEAT * 4));
 const grooveFrom = f2s(T.scenes.assemble.from);   // groove kicks in with the product
 const breakFrom = f2s(T.scenes.metric.from);       // drums drop out for the number
@@ -111,6 +120,7 @@ for (let b = 0; b < bars; b++) {
 // Risers into the groove, into the number and into the logo.
 for (const at of [T.scenes.assemble.from, T.scenes.metric.from, T.scenes.logo.from]) { const d = 1.4; add(f2s(at) - d, riser(d), 0.5); }
 
+for (const k of ['impact', 'whoosh', 'click', 'key', 'pop']) T.sfx[k] ??= [];
 T.sfx.impact.forEach((f) => add(f2s(f), impact, 0.85));
 T.sfx.whoosh.forEach((f, i) => add(f2s(f) - 0.18, whoosh, 0.55, i % 2 ? 0.5 : -0.5));
 T.sfx.click.forEach((f) => add(f2s(f), click, 0.9, 0.15));
@@ -131,6 +141,5 @@ buf.write('RIFF', 0); buf.writeUInt32LE(36 + N * 4, 4); buf.write('WAVEfmt ', 8)
 buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(2, 22); buf.writeUInt32LE(SR, 24);
 buf.writeUInt32LE(SR * 4, 28); buf.writeUInt16LE(4, 32); buf.writeUInt16LE(16, 34); buf.write('data', 36); buf.writeUInt32LE(N * 4, 40);
 for (let i = 0; i < N; i++) { buf.writeInt16LE(Math.round(L[i] * norm * 32767), 44 + i * 4); buf.writeInt16LE(Math.round(R[i] * norm * 32767), 46 + i * 4); }
-fs.mkdirSync(new URL('../public/', import.meta.url), { recursive: true });
-fs.writeFileSync(new URL('../public/music.wav', import.meta.url), buf);
-console.log('music.wav', (N / SR).toFixed(2) + 's', 'peak', peak.toFixed(2));
+fs.writeFileSync(OUT, buf);
+console.log(String(OUT), (N / SR).toFixed(2) + 's', 'peak', peak.toFixed(2));
