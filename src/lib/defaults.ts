@@ -50,7 +50,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   clientsTitle: "Companies we have built for",
   clients: [
     { name: "Ceilao Insurance Brokers", logo: "/clients/ceilao.webp", url: "" },
-    { name: "PMF Finance", logo: "/clients/pmf-finance.webp", url: "" },
+    { name: "Ceilao × PMF Bancassurance", logo: "/clients/ceilao-pmf.webp", url: "" },
     { name: "Araksha Insurance Brokers", logo: "/clients/araksha.webp", url: "" },
     { name: "Power Mate Investment", logo: "/clients/power-mate.webp", url: "" },
     { name: "Sterling Automobiles", logo: "/clients/sterling.webp", url: "" },

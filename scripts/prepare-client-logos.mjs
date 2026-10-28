@@ -68,7 +68,8 @@ const PMF_BANNER = "D:/PMF/pmf-website/public/pmf-logo.png"; // Ceilao | PMF co-
 const LOGOS = [
   // Cropped from the co-brand banner: it carries both marks at 1200px.
   { slug: "ceilao", src: PMF_BANNER, crop: { left: 50, top: 50, width: 560, height: 240 }, knockout: true },
-  { slug: "pmf-finance", src: PMF_BANNER, crop: { left: 670, top: 80, width: 480, height: 200 }, knockout: true },
+  // Ceilao × PMF bancassurance lockup ("Powered by InsureSAAS"), opaque white.
+  { slug: "ceilao-pmf", src: "D:/PMF/unnamed.png", knockout: true },
   { slug: "araksha", src: "D:/Araksha Insurance Brokers/araksha-website/public/araksha-logo.png" },
   { slug: "power-mate", src: "D:/Shenals Portfolio/public/assets/img/powermate-logo.png" },
   { slug: "sterling", src: "D:/Shenals Portfolio/company logos/Sterling Automobiles  back-01.png" },
