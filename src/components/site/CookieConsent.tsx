@@ -15,14 +15,30 @@ export const OPEN_EVENT = "sv:cookie-settings";
 
 type Choice = "granted" | "denied";
 
+const isChoice = (v: unknown): v is Choice => v === "granted" || v === "denied";
+
+/** Cookie first, local storage as a backup (some browsers drop script-set cookies early). */
 function readChoice(): Choice | null {
   const m = document.cookie.match(new RegExp(`(?:^|; )${COOKIE}=(granted|denied)`));
-  return (m?.[1] as Choice) ?? null;
+  if (m) return m[1] as Choice;
+  try {
+    const v = localStorage.getItem(COOKIE);
+    if (isChoice(v)) {
+      saveChoice(v); // restore the cookie
+      return v;
+    }
+  } catch {}
+  return null;
 }
 
 function saveChoice(c: Choice) {
   const secure = location.protocol === "https:" ? "; Secure" : "";
-  document.cookie = `${COOKIE}=${c}; Max-Age=${MAX_AGE}; Path=/; SameSite=Lax${secure}`;
+  // On sagvora.lk the cookie covers both the apex and www.
+  const domain = /(^|\.)sagvora\.lk$/.test(location.hostname) ? "; Domain=.sagvora.lk" : "";
+  document.cookie = `${COOKIE}=${c}; Max-Age=${MAX_AGE}; Path=/; SameSite=Lax${secure}${domain}`;
+  try {
+    localStorage.setItem(COOKIE, c);
+  } catch {}
 }
 
 /** Drops Google Analytics cookies (_ga, _ga_*, _gid) on this host and its parent domain. */
