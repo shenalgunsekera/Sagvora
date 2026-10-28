@@ -309,6 +309,11 @@ export async function createMessage(m: Omit<Message, "id" | "status" | "createdA
   return id;
 }
 
+/** Records whether the enquiry email went out (shown in Admin → Inbox). */
+export async function setMessageMail(id: number, mail: string) {
+  await col("messages").doc(String(id)).update({ mail });
+}
+
 export async function setMessageStatus(id: number, status: Message["status"]) {
   await col("messages").doc(String(id)).update({ status });
 }

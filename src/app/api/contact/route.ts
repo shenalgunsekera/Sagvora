@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createMessage } from "@/lib/queries";
+import { createMessage, setMessageMail } from "@/lib/queries";
 import { sendEnquiry } from "@/lib/mail";
 
 const schema = z.object({
@@ -68,8 +68,10 @@ export async function POST(req: Request) {
   }
 
   const { website: _honeypot, ...data } = parsed.data;
-  await createMessage(data);
-  // Saved first, so a mail hiccup never loses an enquiry; it stays in Admin.
-  await sendEnquiry(data);
+  const id = await createMessage(data);
+  // Saved first, so a mail hiccup never loses an enquiry; it stays in Admin,
+  // marked with what happened to the email.
+  const mail = await sendEnquiry(data);
+  await setMessageMail(id, mail.ok ? "sent" : `failed: ${mail.error}`).catch(() => {});
   return NextResponse.json({ ok: true });
 }

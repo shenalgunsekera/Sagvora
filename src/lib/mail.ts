@@ -21,6 +21,10 @@ function transporter() {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
+    // Never let a slow SMTP handshake hold the visitor's request open.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
     auth: { user: clean(process.env.GMAIL_USER), pass: clean(process.env.GMAIL_APP_PASSWORD).replace(/\s+/g, "") },
   });
   return transport;
@@ -66,9 +70,9 @@ const escape = (s: string) =>
 
 export type Enquiry = { name: string; email: string; company: string; subject: string; message: string };
 
-/** Emails one enquiry. Reply goes straight to the visitor. Returns false on failure. */
-export async function sendEnquiry(e: Enquiry): Promise<boolean> {
-  if (!mailConfigured()) return false;
+/** Emails one enquiry. Reply goes straight to the visitor. */
+export async function sendEnquiry(e: Enquiry): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!mailConfigured()) return { ok: false, error: "Email is not set up on this deployment." };
   const to = process.env.CONTACT_TO || DEFAULT_TO;
   const rows: [string, string][] = [
     ["Name", e.name],
@@ -89,10 +93,11 @@ export async function sendEnquiry(e: Enquiry): Promise<boolean> {
         .map(([k, v]) => `<tr><td style="padding:2px 16px 2px 0;color:#666">${k}</td><td>${escape(v)}</td></tr>`)
         .join("")}</table><p style="font:14px/1.6 system-ui,sans-serif;white-space:pre-wrap">${escape(e.message)}</p>`,
     });
-    return true;
+    return { ok: true };
   } catch (err) {
-    console.error("contact mail failed:", explain(err));
+    const error = explain(err);
+    console.error("contact mail failed:", error);
     transport = null;
-    return false;
+    return { ok: false, error };
   }
 }

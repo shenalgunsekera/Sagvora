@@ -82,6 +82,8 @@ export type Message = {
   message: string;
   status: "new" | "read" | "archived";
   createdAt: string;
+  /** "sent", or why the enquiry email failed. */
+  mail?: string;
 };
 
 export type MediaItem = {

@@ -57,6 +57,10 @@ export default async function InboxAdmin() {
                     </a>
                     {m.company && ` · ${m.company}`} · {m.createdAt}
                   </div>
+                  {m.mail && m.mail !== "sent" && (
+                    <p className="mt-2 border-l-2 border-[#ff8b7a] pl-3 text-xs text-[#ff8b7a]">Email not delivered: {m.mail.replace(/^failed: /, "")}</p>
+                  )}
+                  {m.mail === "sent" && <p className="index mt-2 text-paper-45">Emailed to you ✓</p>}
 
                   {m.subject && (
                     <p className="mt-3 text-sm text-paper-60">
