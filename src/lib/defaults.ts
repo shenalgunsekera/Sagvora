@@ -52,7 +52,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { name: "Ceilao Insurance Brokers", logo: "/clients/ceilao.webp", url: "" },
     { name: "PMF Finance", logo: "/clients/pmf-finance.webp", url: "" },
     { name: "Araksha Insurance Brokers", logo: "/clients/araksha.webp", url: "" },
-    { name: "InsureMe.lk", logo: "/clients/insureme.webp", url: "" },
     { name: "Power Mate Investment", logo: "/clients/power-mate.webp", url: "" },
     { name: "Sterling Automobiles", logo: "/clients/sterling.webp", url: "" },
     { name: "Galactic Arcade", logo: "/clients/galactic-arcade.webp", url: "" },
@@ -79,7 +78,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   contactLead:
     "Tell us the process that costs you the most time. We will map it, cost it, and show you what stage one looks like — before you commit to anything.",
   contactName: "Shenal Gunasekera",
-  email: "shenalgd@gmail.com",
+  email: "shgunasekera@sagvora.lk",
   phone: "+94 74 336 4614",
   address: "Colombo, Sri Lanka",
   socials: [
@@ -93,6 +92,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   founderName: "Shenal Gunasekera",
   googleSiteVerification: "",
   bingSiteVerification: "",
+  analyticsId: "",
 };
 
 /** Merge stored settings over defaults so new fields never break an old save. */

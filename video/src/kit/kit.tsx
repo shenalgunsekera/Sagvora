@@ -100,17 +100,6 @@ export const Browser: React.FC<{
         {['#ff5f57', '#febc2e', '#28c840'].map((c) => (
           <span key={c} style={{ width: bar * 0.24, height: bar * 0.24, borderRadius: 99, background: c, flexShrink: 0 }} />
         ))}
-        <div style={{
-          marginLeft: bar * 0.3, flex: 1, maxWidth: box.w * 0.55, height: bar * 0.56, borderRadius: 99, background: '#2a2b33',
-          display: 'flex', alignItems: 'center', gap: bar * 0.16, padding: `0 ${bar * 0.32}px`,
-          fontFamily: INTER, fontSize: bar * 0.3, color: 'rgba(255,255,255,.72)', whiteSpace: 'nowrap', overflow: 'hidden',
-        }}>
-          <svg width={bar * 0.26} height={bar * 0.26} viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-            <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="rgba(255,255,255,.6)" strokeWidth="2.4" fill="none" />
-            <rect x="5" y="11" width="14" height="10" rx="2" fill="rgba(255,255,255,.6)" />
-          </svg>
-          {t.url}
-        </div>
       </div>
       {/* viewport */}
       <div style={{ position: 'absolute', left: view.x, top: view.y, width: view.w, height: view.h, overflow: 'hidden' }}>

@@ -272,6 +272,8 @@ export async function saveSettingsAction(formData: FormData) {
     founderName: str(formData, "founderName"),
     googleSiteVerification: verificationCode(str(formData, "googleSiteVerification")),
     bingSiteVerification: verificationCode(str(formData, "bingSiteVerification")),
+    // Only a well-formed GA4 ID is kept; anything else (a pasted snippet) is dropped.
+    analyticsId: /G-[A-Z0-9]{4,16}/i.exec(str(formData, "analyticsId"))?.[0].toUpperCase() ?? "",
   };
 
   await saveSettings(next);

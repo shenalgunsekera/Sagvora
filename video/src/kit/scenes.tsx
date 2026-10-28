@@ -442,7 +442,6 @@ export const End: React.FC<{ spec: EndSpec; logo: LogoSpec }> = ({ spec, logo })
         transform: `scale(${cta}) translateY(${(1 - cta) * 40}px)`, opacity: Math.min(1, cta * 1.5), whiteSpace: 'nowrap',
       }}>
         {spec.cta}
-        <span style={{ fontWeight: 600, opacity: 0.9 }}>→ {t.url}</span>
       </div>
     </AbsoluteFill>
   );

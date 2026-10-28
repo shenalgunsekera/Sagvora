@@ -35,6 +35,10 @@ const PROJECTS = {
     base: "https://the-ascend.vercel.app",
     pages: { home: "/", services: "/services", program: "/program", about: "/about" },
   },
+  powermate: {
+    base: 'https://power-mate-investments.vercel.app',
+    pages: { home: '/en', products: '/en/products', branches: '/en/branches', about: '/en/about', contact: '/en/contact' },
+  },
   bot: {
     base: "https://aptbot-panel.vercel.app",
     pages: { login: "/login" },

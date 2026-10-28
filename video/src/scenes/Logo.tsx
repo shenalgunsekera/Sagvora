@@ -44,7 +44,6 @@ export const Logo: React.FC = () => {
         transform: `scale(${cta}) translateY(${(1 - cta) * 40}px)`, opacity: Math.min(1, cta * 1.5),
       }}>
         Book a demo
-        <span style={{ fontWeight: 600, opacity: 0.9 }}>→ insuresaas.lk</span>
       </div>
     </AbsoluteFill>
   );

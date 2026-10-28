@@ -35,3 +35,17 @@ export const spadeLogo = (word: string, sub?: string): LogoSpec => ({
     </div>
   ),
 });
+
+/** Power Mate's "S" mark with the wordmark set beside it. */
+export const powermateLogo: LogoSpec = {
+  ratio: 0.26,
+  draw: (w) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: w * 0.04, height: w * 0.26, fontFamily: INTER, color: '#fff' }}>
+      <Img src={staticFile('powermate/logo.webp')} style={{ height: w * 0.24, width: w * 0.24 * (195 / 140), objectFit: 'contain' }} />
+      <div>
+        <div style={{ fontSize: w * 0.11, fontWeight: 900, letterSpacing: w * 0.004, lineHeight: 0.95, whiteSpace: 'nowrap' }}>POWER MATE</div>
+        <div style={{ fontSize: w * 0.05, fontWeight: 700, letterSpacing: w * 0.02, opacity: 0.8, marginTop: w * 0.014, whiteSpace: 'nowrap' }}>INVESTMENT</div>
+      </div>
+    </div>
+  ),
+};

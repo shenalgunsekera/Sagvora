@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Marquee from "@/components/fx/Marquee";
+import CookieSettingsButton from "./CookieSettingsButton";
 import Wordmark from "./Wordmark";
 import type { SiteSettings } from "@/lib/types";
 
@@ -88,6 +89,7 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
         </span>
         <div className="flex items-center gap-6">
           <span className="index hidden md:inline">{settings.tagline}</span>
+          <CookieSettingsButton className="index transition-colors duration-500 hover:text-paper" />
           <Link href="/admin" className="index transition-colors duration-500 hover:text-paper">
             Admin
           </Link>

@@ -279,6 +279,12 @@ export default async function SettingsAdmin() {
           >
             <input name="bingSiteVerification" defaultValue={s.bingSiteVerification} className="admin-input" />
           </Field>
+          <Field
+            label="Google Analytics ID"
+            hint="Your GA4 measurement ID (G-XXXXXXX). It only loads for visitors who accept cookies. Leave blank for no analytics."
+          >
+            <input name="analyticsId" defaultValue={s.analyticsId} placeholder="G-XXXXXXXXXX" className="admin-input" />
+          </Field>
         </Group>
       </div>
 

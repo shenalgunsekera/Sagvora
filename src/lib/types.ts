@@ -145,6 +145,8 @@ export type SiteSettings = {
   googleSiteVerification: string;
   /** Bing Webmaster Tools verification code (msvalidate.01 content value). */
   bingSiteVerification: string;
+  /** Google Analytics 4 measurement ID (G-XXXX). Loads only after cookie consent. */
+  analyticsId: string;
 };
 
 export type AdminUser = {

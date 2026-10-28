@@ -18,6 +18,7 @@ import path from "node:path";
 
 const OUT = path.join(process.cwd(), "public", "clients");
 fs.mkdirSync(path.join(OUT, "color"), { recursive: true });
+fs.mkdirSync(path.join(OUT, "tint"), { recursive: true });
 
 /** Paper-coloured silhouette: alpha follows ink, near-white becomes a hole. */
 async function mono(buf, { knockDark = false, inkWhite = false } = {}) {
@@ -37,6 +38,31 @@ async function mono(buf, { knockDark = false, inkWhite = false } = {}) {
   return sharp(data, { raw: info }).trim({ threshold: 1 }).png().toBuffer();
 }
 
+/**
+ * Same holes as mono(), but keeps the brand colours. Black/grey ink would vanish
+ * on the dark page, so neutrals turn paper and dark colours are lifted.
+ */
+async function tint(buf, { knockDark = false, inkWhite = false } = {}) {
+  const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+    const min = Math.min(r, g, b);
+    const max = Math.max(r, g, b);
+    const whiteness = Math.min(1, Math.max(0, (min - 190) / 50));
+    let ink = inkWhite ? whiteness : 1 - whiteness;
+    if (knockDark) ink *= Math.min(1, Math.max(0, (max - 28) / 30));
+    data[i + 3] = Math.round(data[i + 3] * ink);
+    const chroma = Math.min(1, Math.max(0, (max - min - 24) / 40)); // 0 = grey, 1 = colour
+    const lift = max < 150 ? (150 - max) / 150 : 0; // dark colours move toward white
+    const paper = [244, 244, 240];
+    [r, g, b].forEach((c, k) => {
+      const coloured = c + (255 - c) * lift * 0.55;
+      data[i + k] = Math.round(paper[k] * (1 - chroma) + coloured * chroma);
+    });
+  }
+  return sharp(data, { raw: info }).trim({ threshold: 1 }).png().toBuffer();
+}
+
 const PMF_BANNER = "D:/PMF/pmf-website/public/pmf-logo.png"; // Ceilao | PMF co-brand, 1200×400
 
 const LOGOS = [
@@ -44,7 +70,6 @@ const LOGOS = [
   { slug: "ceilao", src: PMF_BANNER, crop: { left: 50, top: 50, width: 560, height: 240 }, knockout: true },
   { slug: "pmf-finance", src: PMF_BANNER, crop: { left: 670, top: 80, width: 480, height: 200 }, knockout: true },
   { slug: "araksha", src: "D:/Araksha Insurance Brokers/araksha-website/public/araksha-logo.png" },
-  { slug: "insureme", src: "D:/Insurance Project/insuremelk-frontend/src/insureme-logo.png" },
   { slug: "power-mate", src: "D:/Shenals Portfolio/public/assets/img/powermate-logo.png" },
   { slug: "sterling", src: "D:/Shenals Portfolio/company logos/Sterling Automobiles  back-01.png" },
   { slug: "galactic-arcade", src: "D:/Shenals Portfolio/public/assets/img/galactic-logo.png", badge: true, mono: { inkWhite: true } },
@@ -91,6 +116,7 @@ for (const l of LOGOS) {
         .toFile(file);
     await save(buf, path.join(OUT, "color", `${l.slug}.webp`));
     const out = await save(await mono(buf, l.mono), path.join(OUT, `${l.slug}.webp`));
+    await save(await tint(buf, l.mono), path.join(OUT, "tint", `${l.slug}.webp`));
     console.log(`  ${l.slug.padEnd(16)} ${out.width}×${out.height}  ${(out.size / 1024).toFixed(1)} KB`);
   } catch (e) {
     console.warn(`  ! ${l.slug}: ${e.message}`);

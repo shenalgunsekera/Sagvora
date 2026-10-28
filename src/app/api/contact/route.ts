@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createMessage } from "@/lib/queries";
+import { sendEnquiry } from "@/lib/mail";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Please tell us your name.").max(120),
@@ -68,5 +69,7 @@ export async function POST(req: Request) {
 
   const { website: _honeypot, ...data } = parsed.data;
   await createMessage(data);
+  // Saved first, so a mail hiccup never loses an enquiry; it stays in Admin.
+  await sendEnquiry(data);
   return NextResponse.json({ ok: true });
 }

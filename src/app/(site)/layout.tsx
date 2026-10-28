@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Grain from "@/components/fx/Grain";
 import MotionRoot from "@/components/fx/MotionRoot";
 import Preloader, { PRELOADER_GATE } from "@/components/fx/Preloader";
+import CookieConsent from "@/components/site/CookieConsent";
 import Footer from "@/components/site/Footer";
 import Nav from "@/components/site/Nav";
 import { getSettings } from "@/lib/queries";
@@ -84,6 +85,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Nav email={settings.email} phone={settings.phone} />
       <main id="main">{children}</main>
       <Footer settings={settings} />
+      <CookieConsent analyticsId={settings.analyticsId} />
     </>
   );
 }
