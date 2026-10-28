@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const report: Record<string, unknown> = {
-    node: process.version,
     firebaseConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT),
     authSecretSet: Boolean(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
     mailConfigured: mailConfigured(),
@@ -19,7 +18,9 @@ export async function GET() {
     report.ok = true;
   } catch (err) {
     report.ok = false;
-    report.error = (err as Error).message;
+    // The detail goes to the server log, not to whoever asked.
+    console.error("health: firestore unreachable:", (err as Error).message);
+    report.error = "Database unreachable.";
   }
   return NextResponse.json(report, { status: report.ok ? 200 : 500, headers: { "cache-control": "no-store" } });
 }

@@ -90,9 +90,6 @@ export default function Footer({ settings }: { settings: SiteSettings }) {
         <div className="flex items-center gap-6">
           <span className="index hidden md:inline">{settings.tagline}</span>
           <CookieSettingsButton className="index transition-colors duration-500 hover:text-paper" />
-          <Link href="/admin" className="index transition-colors duration-500 hover:text-paper">
-            Admin
-          </Link>
           <a href="#main" className="index transition-colors duration-500 hover:text-paper">
             Top ↑
           </a>

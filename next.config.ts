@@ -19,6 +19,24 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   eslint: { ignoreDuringBuilds: true },
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // Scripts aren't pinned here (analytics may load after consent), but
+          // framing, plugins and <base> hijacking are shut off.
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+        ],
+      },
+    ];
+  },
   async redirects() {
     // Only the production vercel.app alias — preview deployments keep working.
     if (canonicalHost === "sagvora.vercel.app") return [];

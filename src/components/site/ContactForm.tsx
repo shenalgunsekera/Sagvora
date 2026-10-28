@@ -78,7 +78,18 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="panel p-6 sm:p-8 md:p-10" noValidate>
+    <form
+      onSubmit={onSubmit}
+      onFocus={(e) => {
+        // Touch screens: once the keyboard has opened, centre the field being typed in.
+        const el = e.target;
+        if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
+        if (!window.matchMedia("(pointer: coarse)").matches) return;
+        window.setTimeout(() => el.scrollIntoView({ block: "center", behavior: "smooth" }), 350);
+      }}
+      className="panel p-6 sm:p-8 md:p-10"
+      noValidate
+    >
       {/* Honeypot — hidden from people, irresistible to bots. */}
       <input
         type="text"

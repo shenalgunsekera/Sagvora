@@ -1119,6 +1119,11 @@ a:hover .reel-prompt {
 @keyframes cookie-in {
   from { opacity: 0; transform: translate3d(0, 1.5rem, 0); }
 }
+/* While someone is typing, the banner steps aside: on phones a fixed bottom
+   element rides up with the keyboard and would sit on the field. */
+body:has(:is(input, textarea, select):focus) .cookie-banner { display: none; }
+/* Fields scrolled into view (keyboard opening, tabbing) clear the fixed nav. */
+:is(input, textarea, select) { scroll-margin-top: 7rem; scroll-margin-bottom: 2rem; }
 @media (max-width: 639px) {
   .cookie-banner { right: 1rem; bottom: 1rem; width: calc(100vw - 2rem); padding: 1.25rem; }
   .cookie-banner .btn { flex: 1; justify-content: center; }
