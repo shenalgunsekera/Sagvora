@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { createMessage, setMessageMail } from "@/lib/queries";
 import { sendEnquiry } from "@/lib/mail";
@@ -71,7 +71,11 @@ export async function POST(req: Request) {
   const id = await createMessage(data);
   // Saved first, so a mail hiccup never loses an enquiry; it stays in Admin,
   // marked with what happened to the email.
-  const mail = await sendEnquiry(data);
-  await setMessageMail(id, mail.ok ? "sent" : `failed: ${mail.error}`).catch(() => {});
+  // The visitor gets their answer straight away; Gmail is talked to after the
+  // response is sent (it can take several seconds on a cold start).
+  after(async () => {
+    const mail = await sendEnquiry(data);
+    await setMessageMail(id, mail.ok ? "sent" : `failed: ${mail.error}`).catch(() => {});
+  });
   return NextResponse.json({ ok: true });
 }
