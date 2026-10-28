@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { firestore } from "@/lib/firebase";
+import { mailConfigured } from "@/lib/mail";
 
 // Deployment check: can this instance reach Firestore? Reports status only —
 // no content and no environment values.
@@ -10,6 +11,7 @@ export async function GET() {
     node: process.version,
     firebaseConfigured: Boolean(process.env.FIREBASE_SERVICE_ACCOUNT),
     authSecretSet: Boolean(process.env.AUTH_SECRET && process.env.AUTH_SECRET.length >= 16),
+    mailConfigured: mailConfigured(),
   };
   try {
     const snap = await firestore().collection("projects").count().get();

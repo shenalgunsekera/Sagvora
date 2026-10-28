@@ -65,7 +65,7 @@ export default function ContactForm() {
         </svg>
         <h3 className="display-sm text-paper">Received.</h3>
         <p className="max-w-sm text-paper-45">
-          We read every message ourselves. Expect a reply within one business day — with a first
+          We read every message ourselves. Expect a reply within one business day, with a first
           question, not a brochure.
         </p>
         <button type="button" onClick={() => setStatus("idle")} className="btn mt-2">
@@ -104,7 +104,7 @@ export default function ContactForm() {
               autoComplete={
                 f.name === "email" ? "email" : f.name === "name" ? "name" : "organization"
               }
-              placeholder="—"
+              placeholder="..."
             />
             <span className="field-rule" />
           </label>

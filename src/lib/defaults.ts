@@ -29,17 +29,17 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     "We prepare businesses for the future while solving today's problems.",
   ],
   manifestoClosing:
-    "Most firms sell you a model. We rebuild the way the work moves — then let intelligence run it.",
+    "Most firms sell you a model. We rebuild the way the work moves. Then we let intelligence run it.",
 
   bandImage: "/imagery/band-control-room.webp",
   bandKicker: "Where we start",
   bandLine:
-    "Every engagement begins in the room where the work actually happens — not in a slide deck.",
+    "Every engagement begins in the room where the work actually happens, not in a slide deck.",
 
   ladderKicker: "The Method",
   ladderTitle: "Five stages. One direction.",
   ladderLead:
-    "Transformation fails when it starts with the technology. Ours starts with the workflow and climbs — each stage earning the right to the next.",
+    "Transformation fails when it starts with the technology. Ours starts with the workflow and climbs, each stage earning the right to the next.",
 
   servicesKicker: "Capabilities",
   servicesTitle: "What we build",
@@ -64,7 +64,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   workKicker: "Selected Work",
   workTitle: "Proof, not promises",
   workLead:
-    "A sample of transformations — the workflow before, the system after, and the numbers in between.",
+    "A sample of transformations: the workflow before, the system after, and the numbers in between.",
 
   metrics: [
     { label: "Manual hours removed / month", value: 12400, suffix: "+", prefix: "" },
@@ -76,7 +76,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   contactKicker: "Contact",
   contactTitle: "Start with one workflow",
   contactLead:
-    "Tell us the process that costs you the most time. We will map it, cost it, and show you what stage one looks like — before you commit to anything.",
+    "Tell us the process that costs you the most time. We will map it, cost it, and show you what stage one looks like, before you commit to anything.",
   contactName: "Shenal Gunasekera",
   email: "shgunasekera@sagvora.lk",
   phone: "+94 74 336 4614",
@@ -86,7 +86,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ],
   footerNote: "Building the businesses that outlast their own playbooks.",
 
-  seoTitle: "Sagvora Innovations — AI & Business Transformation, Sri Lanka",
+  seoTitle: "Sagvora Innovations | AI & Business Transformation, Sri Lanka",
   seoDescription:
     "Sagvora Innovations is a Colombo, Sri Lanka business transformation company. We automate your workflows, then add AI assistants, AI employees and AI departments.",
   founderName: "Shenal Gunasekera",

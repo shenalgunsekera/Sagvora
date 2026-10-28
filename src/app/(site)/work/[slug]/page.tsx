@@ -215,7 +215,7 @@ export default async function WorkPage({ params }: Params) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={src}
-                  alt={`${project.title} — image ${i + 1}`}
+                  alt={`${project.title}, image ${i + 1}`}
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />

@@ -30,7 +30,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
           className="kicker whitespace-nowrap"
           style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
         >
-          Est. Colombo — Worldwide
+          Est. Colombo · Worldwide
         </span>
       </div>
       <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[var(--rail)] items-center justify-center lg:flex">

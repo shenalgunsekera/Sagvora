@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Sagvora Innovations",
     short_name: "Sagvora",
-    description: "Business transformation company in Colombo, Sri Lanka — automation, then AI.",
+    description: "Business transformation company in Colombo, Sri Lanka. Automation, then AI.",
     start_url: "/",
     display: "standalone",
     background_color: "#08080a",

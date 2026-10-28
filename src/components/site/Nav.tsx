@@ -110,7 +110,7 @@ export default function Nav({ email, phone }: { email?: string; phone?: string }
         }}
       >
         <div className="shell flex h-20 items-center justify-between">
-          <Link href="/" aria-label="Sagvora Innovations — home" className="relative z-10">
+          <Link href="/" aria-label="Sagvora Innovations home" className="relative z-10">
             <Wordmark className="text-[1.15rem]" />
           </Link>
 

@@ -54,7 +54,7 @@ export default function StageForm({
               name="subtitle"
               defaultValue={stage?.subtitle ?? ""}
               className="admin-input"
-              placeholder="Intelligence enters the workflow — as a colleague, not a replacement."
+              placeholder="Intelligence enters the workflow as a colleague, not a replacement."
             />
           </Field>
 

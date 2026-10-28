@@ -33,11 +33,11 @@ const jetbrains = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Sagvora Innovations — Business Transformation Company",
+    default: "Sagvora Innovations | Business Transformation Company",
     template: "%s · Sagvora Innovations",
   },
   description:
-    "We automate first, then introduce AI, then AI employees, then AI departments — a five-stage transformation ladder for businesses that intend to still be here in ten years.",
+    "We automate first, then introduce AI, then AI employees, then AI departments: a five-stage transformation ladder for businesses that intend to still be here in ten years.",
   metadataBase: new URL(siteUrl()),
 };
 
