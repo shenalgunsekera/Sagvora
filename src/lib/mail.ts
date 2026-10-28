@@ -13,7 +13,7 @@ import nodemailer from "nodemailer";
  */
 const DEFAULT_TO = "shgunasekera@sagvora.lk";
 
-export const mailConfigured = () => Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+export const mailConfigured = () => Boolean(clean(process.env.GMAIL_USER) && clean(process.env.GMAIL_APP_PASSWORD));
 
 let transport: nodemailer.Transporter | null = null;
 function transporter() {
@@ -21,9 +21,44 @@ function transporter() {
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
-    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD?.replace(/\s+/g, "") },
+    auth: { user: clean(process.env.GMAIL_USER), pass: clean(process.env.GMAIL_APP_PASSWORD).replace(/\s+/g, "") },
   });
   return transport;
+}
+
+/** Env values pasted with quotes or stray whitespace still work. */
+function clean(v: string | undefined) {
+  return (v ?? "").trim().replace(/^["']|["']$/g, "").trim();
+}
+
+/** Plain-English reason for an SMTP failure, for the Admin test button. */
+function explain(err: unknown) {
+  const e = err as { responseCode?: number; response?: string; code?: string; message?: string };
+  const raw = (e.response || e.message || String(err)).slice(0, 300);
+  if (e.responseCode === 535 || /BadCredentials|not accepted/i.test(raw))
+    return `Google rejected the login. Check that GMAIL_USER is the Gmail address that created the App Password and that GMAIL_APP_PASSWORD is that 16-letter App Password (not your normal password). Google said: ${raw}`;
+  if (e.responseCode === 534 || /Application-specific password required/i.test(raw))
+    return `Google wants an App Password, not your normal password. Create one at myaccount.google.com/apppasswords. Google said: ${raw}`;
+  return raw;
+}
+
+/** Logs in and sends a test message to CONTACT_TO. Admin-only diagnostics. */
+export async function sendTestMail(): Promise<{ ok: true; to: string } | { ok: false; error: string }> {
+  if (!mailConfigured()) return { ok: false, error: "GMAIL_USER or GMAIL_APP_PASSWORD is not set on this deployment." };
+  const to = process.env.CONTACT_TO || DEFAULT_TO;
+  try {
+    await transporter().verify();
+    await transporter().sendMail({
+      from: { name: "Sagvora website", address: clean(process.env.GMAIL_USER) },
+      to,
+      subject: "Test: Sagvora contact form email",
+      text: "This is a test from Admin. If you can read this, contact form enquiries will arrive here.",
+    });
+    return { ok: true, to };
+  } catch (err) {
+    transport = null; // retry with fresh credentials next time
+    return { ok: false, error: explain(err) };
+  }
 }
 
 const escape = (s: string) =>
@@ -41,13 +76,13 @@ export async function sendEnquiry(e: Enquiry): Promise<boolean> {
     ["Company", e.company],
     ["Subject", e.subject],
   ];
-  const clean = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 160);
+  const oneLine = (s: string) => s.replace(/[\r\n]+/g, " ").slice(0, 160);
   try {
     await transporter().sendMail({
-      from: { name: "Sagvora website", address: process.env.GMAIL_USER! },
+      from: { name: "Sagvora website", address: clean(process.env.GMAIL_USER) },
       to,
-      replyTo: { name: clean(e.name), address: e.email },
-      subject: clean(`New enquiry: ${e.subject || e.name}${e.company ? ` (${e.company})` : ""}`),
+      replyTo: { name: oneLine(e.name), address: e.email },
+      subject: oneLine(`New enquiry: ${e.subject || e.name}${e.company ? ` (${e.company})` : ""}`),
       text: [...rows.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`), "", e.message].join("\n"),
       html: `<table style="font:14px/1.5 system-ui,sans-serif;border-collapse:collapse">${rows
         .filter(([, v]) => v)
@@ -56,7 +91,8 @@ export async function sendEnquiry(e: Enquiry): Promise<boolean> {
     });
     return true;
   } catch (err) {
-    console.error("contact mail failed:", err instanceof Error ? err.message : err);
+    console.error("contact mail failed:", explain(err));
+    transport = null;
     return false;
   }
 }

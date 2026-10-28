@@ -14,6 +14,7 @@ import {
 import { DEFAULT_SETTINGS } from "@/lib/defaults";
 import { bool, json, num, slugFrom, str } from "@/lib/form";
 import { deleteBlob, saveBlob } from "@/lib/media-store";
+import { sendTestMail } from "@/lib/mail";
 import {
   createMedia,
   deleteMedia,
@@ -442,4 +443,13 @@ export async function changePasswordAction(
 export async function logoutAction() {
   await clearSessionCookie();
   redirect("/admin/login");
+}
+
+/* ------------------------------------------------------------------ mail */
+
+/** Sends a test email with the deployment's Gmail settings and reports Google's answer. */
+export async function sendTestEmailAction(_prev: ActionState & { message?: string }): Promise<ActionState & { message?: string }> {
+  await requireUser();
+  const res = await sendTestMail();
+  return res.ok ? { ok: true, message: `Sent to ${res.to}. Check that inbox (and spam).` } : { error: res.error };
 }

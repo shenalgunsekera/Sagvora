@@ -1,5 +1,6 @@
 import { deleteMessageAction, setMessageStatusAction } from "@/app/admin/actions";
 import { DeleteButton, PageHeader, Pill } from "@/components/admin/ui";
+import MailTest from "@/components/admin/MailTest";
 import { getMessages } from "@/lib/queries";
 import { requireAdmin } from "@/lib/guard";
 
@@ -22,9 +23,12 @@ export default async function InboxAdmin() {
         }
       />
 
+      <MailTest />
+
+
       {messages.length === 0 ? (
         <div className="rounded-[4px] border border-dashed border-line p-12 text-center text-sm text-paper-30">
-          Nothing yet. The contact form writes straight into this table — no third-party service
+          Nothing yet. The contact form writes straight into this table, and also emails you through Gmail. No other third-party service
           involved.
         </div>
       ) : (
