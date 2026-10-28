@@ -67,7 +67,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     "A sample of transformations: the workflow before, the system after, and the numbers in between.",
 
   metrics: [
-    { label: "Manual hours removed / month", value: 12400, suffix: "+", prefix: "" },
+    { label: "Manual hours removed / month", value: 2400, suffix: "+", prefix: "" },
     { label: "Average turnaround reduction", value: 68, suffix: "%", prefix: "" },
     { label: "AI agents in production", value: 47, suffix: "", prefix: "" },
     { label: "Client retention", value: 100, suffix: "%", prefix: "" },
