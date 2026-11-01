@@ -4,6 +4,30 @@ import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { uploadMediaAction, type ActionState } from "@/app/admin/actions";
 
+/**
+ * Phone photos are often 5–15 MB, over what the server accepts in one request.
+ * Large rasters are scaled to 2400px and re-encoded in the browser first (the
+ * server stores them at that size anyway), so any photo uploads.
+ */
+const MAX_SIDE = 2400;
+const SHRINK_OVER = 3 * 1024 * 1024;
+
+async function shrink(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) return file;
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+  if (scale === 1 && file.size <= SHRINK_OVER) return file;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", 0.9));
+  if (!blob || blob.size >= file.size) return file;
+  return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+}
+
 function Submit({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
@@ -21,15 +45,20 @@ export default function MediaUploader() {
   const [state, formAction] = useActionState<ActionState, FormData>(uploadMediaAction, {});
   const [filename, setFilename] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const takeFiles = (files: FileList | null) => {
+  const takeFiles = async (files: FileList | null) => {
     if (!files?.length || !inputRef.current) return;
-    // DataTransfer lets a dropped file populate the real input.
+    const original = files[0];
+    setFilename(original.name);
+    setPreparing(true);
+    const ready = await shrink(original).catch(() => original);
+    setPreparing(false);
+    // DataTransfer lets the prepared (or dropped) file populate the real input.
     const dt = new DataTransfer();
-    dt.items.add(files[0]);
+    dt.items.add(ready);
     inputRef.current.files = dt.files;
-    setFilename(files[0].name);
   };
 
   return (
@@ -65,7 +94,7 @@ export default function MediaUploader() {
         <p className="mt-4 text-sm text-paper-60">
           {filename || "Drop an image here, or click to choose"}
         </p>
-        <p className="index mt-1">JPEG · PNG · WebP · AVIF · SVG · up to 8 MB</p>
+        <p className="index mt-1">JPEG · PNG · WebP · AVIF · SVG · any size photo</p>
 
         <input
           ref={inputRef}
@@ -73,7 +102,11 @@ export default function MediaUploader() {
           name="file"
           accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml"
           className="hidden"
-          onChange={(e) => setFilename(e.target.files?.[0]?.name ?? "")}
+          onChange={(e) => {
+            const list = e.target.files;
+            if (list?.length) void takeFiles(list);
+            else setFilename("");
+          }}
         />
       </div>
 
@@ -89,9 +122,10 @@ export default function MediaUploader() {
             placeholder="Describe the image for screen readers"
           />
         </div>
-        <Submit disabled={!filename} />
+        <Submit disabled={!filename || preparing} />
       </div>
 
+      {preparing && <p className="mt-3 text-sm text-paper-45">Preparing the image…</p>}
       {state.error && (
         <p className="mt-3 border-l-2 border-[#ff8b7a] pl-3 text-sm text-[#ff8b7a]">{state.error}</p>
       )}

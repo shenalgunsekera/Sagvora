@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
   },
   eslint: { ignoreDuringBuilds: true },
   poweredByHeader: false,
+  // Media uploads go through a server action; the 1 MB default rejects phone
+  // photos. Vercel caps request bodies at 4.5 MB, and the uploader shrinks
+  // large images in the browser first, so 5 MB is never reached in practice.
+  experimental: { serverActions: { bodySizeLimit: "5mb" } },
   async headers() {
     return [
       {
