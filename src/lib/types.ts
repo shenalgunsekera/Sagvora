@@ -73,6 +73,23 @@ export type Testimonial = {
   published: number;
 };
 
+/** A person with a digital business card at /card/<slug> (the QR code points there). */
+export type TeamMember = {
+  id: number;
+  slug: string;
+  name: string;
+  position: string;
+  photo: string | null;
+  email: string;
+  phone: string;
+  /** Digits only, with country code (e.g. 94743364614). Empty hides the button. */
+  whatsapp: string;
+  linkedin: string;
+  bio: string;
+  orderIndex: number;
+  published: number;
+};
+
 export type Message = {
   id: number;
   name: string;

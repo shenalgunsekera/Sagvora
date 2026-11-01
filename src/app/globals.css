@@ -1131,3 +1131,303 @@ body:has(:is(input, textarea, select):focus) .cookie-banner { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .cookie-banner { animation: none; }
 }
+
+/* ==========================================================================
+   Digital business card (app/card/[slug])
+   ========================================================================== */
+
+.vcard-page {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 1.25rem 1rem 2rem;
+  overflow: hidden;
+  background: var(--color-ink-0);
+}
+.vcard-aurora {
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(40% 35% at 30% 20%, rgba(217, 185, 120, 0.22), transparent 70%),
+    radial-gradient(45% 40% at 75% 70%, rgba(166, 200, 232, 0.2), transparent 70%),
+    radial-gradient(35% 30% at 60% 30%, rgba(201, 189, 232, 0.14), transparent 70%);
+  filter: blur(40px);
+  animation: vcard-drift 18s ease-in-out infinite alternate;
+}
+@keyframes vcard-drift {
+  to { transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.06); }
+}
+.vcard {
+  position: relative;
+  width: min(25rem, 100%);
+  padding: 1.5rem 1.5rem 1.75rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(22, 22, 28, 0.82), rgba(11, 11, 14, 0.9));
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+.vcard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+.vcard-photo {
+  position: relative;
+  width: 11rem;
+  height: 11rem;
+  margin: 2.25rem auto 0;
+  border-radius: 999px;
+}
+.vcard-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, var(--color-signal), var(--color-haze), var(--color-cool), var(--color-signal));
+  animation: vcard-spin 8s linear infinite;
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+}
+.vcard-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(14px);
+  opacity: 0.6;
+}
+@keyframes vcard-spin { to { transform: rotate(1turn); } }
+.vcard-photo img,
+.vcard-initials {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  border: 5px solid var(--color-ink-1);
+}
+.vcard-initials {
+  display: grid;
+  place-items: center;
+  background: var(--color-ink-3);
+  font-family: var(--font-display);
+  font-size: 3.25rem;
+  font-weight: 800;
+  color: var(--color-paper);
+}
+.vcard-name {
+  margin-top: 1.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  color: var(--color-paper);
+  text-wrap: balance;
+}
+.vcard-role {
+  margin-top: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  background: linear-gradient(90deg, var(--color-signal), var(--color-cool));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.vcard-company {
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--color-paper-45);
+}
+.vcard-bio {
+  margin: 1.25rem auto 0;
+  max-width: 30ch;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--color-paper-60);
+}
+.vcard-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin-top: 1.75rem;
+}
+.vcard-actions li:only-child,
+.vcard-actions li:last-child:nth-child(odd) { grid-column: span 2; }
+.vcard-actions a {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 16px;
+  background: rgba(244, 244, 240, 0.03);
+  color: var(--color-paper);
+  text-align: left;
+  transition: border-color 300ms var(--ease-soft), background-color 300ms var(--ease-soft), transform 400ms var(--ease-expo);
+}
+.vcard-actions a svg { margin-bottom: 0.45rem; color: var(--color-signal); }
+.vcard-actions a:hover { border-color: var(--color-line-strong); background: rgba(244, 244, 240, 0.06); }
+.vcard-actions a:active { transform: scale(0.97); }
+.vcard-action-label { font-weight: 600; font-size: 0.9375rem; }
+.vcard-action-sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-paper-45);
+}
+.vcard-cta {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.625rem;
+  margin-top: 0.875rem;
+}
+.vcard-save,
+.vcard-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  border-radius: 16px;
+  font-weight: 600;
+  transition: transform 400ms var(--ease-expo), filter 300ms var(--ease-soft);
+}
+.vcard-save {
+  background: linear-gradient(135deg, var(--color-paper), #dcd6c4);
+  color: var(--color-ink-0);
+  box-shadow: 0 12px 40px rgba(217, 185, 120, 0.25);
+}
+.vcard-share {
+  padding: 0 1.1rem;
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-paper);
+}
+.vcard-save:hover, .vcard-share:hover { filter: brightness(1.06); }
+.vcard-save:active, .vcard-share:active { transform: scale(0.97); }
+.vcard-foot {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--color-paper-45);
+}
+.vcard [data-in] { animation: vcard-in 900ms var(--ease-expo) both; }
+.vcard [data-in="2"] { animation-delay: 80ms; }
+.vcard [data-in="3"] { animation-delay: 160ms; }
+.vcard [data-in="4"] { animation-delay: 240ms; }
+.vcard [data-in="5"] { animation-delay: 320ms; }
+@keyframes vcard-in {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); filter: blur(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vcard-aurora, .vcard-ring, .vcard [data-in] { animation: none; }
+}
+
+/* ==========================================================================
+   Printable business card (admin/team/[id]/card) — true size 85 × 55 mm
+   ========================================================================== */
+
+.print-sheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+.bcard {
+  position: relative;
+  width: 85mm;
+  height: 55mm;
+  overflow: hidden;
+  border-radius: 3mm;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.bcard-front {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5mm 5.5mm;
+  background: #0b0b0e;
+  color: #f4f4f0;
+}
+.bcard-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 70% at 100% 0%, rgba(217, 185, 120, 0.28), transparent 70%),
+    radial-gradient(60% 70% at 0% 100%, rgba(166, 200, 232, 0.22), transparent 70%);
+}
+.bcard-front-top { position: relative; display: flex; align-items: flex-start; justify-content: space-between; }
+.bcard-wordmark { font-size: 4.2mm; }
+.bcard-photo {
+  width: 13mm;
+  height: 13mm;
+  border-radius: 999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 0.5mm #0b0b0e, 0 0 0 0.9mm #d9b978;
+}
+.bcard-initials { display: grid; place-items: center; background: #1e1e26; font-family: var(--font-display); font-weight: 800; font-size: 4.5mm; }
+.bcard-front-body { position: relative; }
+.bcard-name {
+  font-family: var(--font-display);
+  font-size: 6.4mm;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.bcard-role {
+  margin-top: 1.2mm;
+  font-size: 2.7mm;
+  font-weight: 500;
+  background: linear-gradient(90deg, #d9b978, #a6c8e8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.bcard-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6mm 3mm;
+  margin-top: 3mm;
+  padding-top: 2.2mm;
+  border-top: 0.2mm solid rgba(244, 244, 240, 0.18);
+  font-family: var(--font-mono);
+  font-size: 2.05mm;
+  letter-spacing: 0.02em;
+  color: rgba(244, 244, 240, 0.72);
+}
+.bcard-back {
+  display: flex;
+  align-items: center;
+  gap: 5mm;
+  padding: 5mm 5.5mm;
+  background: #f4f4f0;
+  color: #08080a;
+}
+.bcard-qr { width: 36mm; height: 36mm; flex-shrink: 0; }
+.bcard-qr svg { display: block; width: 100%; height: 100%; }
+.bcard-back-text { min-width: 0; }
+.bcard-scan { font-family: var(--font-display); font-size: 4.4mm; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+.bcard-scan-sub { margin-top: 1.4mm; font-size: 2.3mm; line-height: 1.4; color: rgba(8, 8, 10, 0.62); }
+.bcard-url { margin-top: 3mm; font-family: var(--font-mono); font-size: 1.9mm; word-break: break-all; color: rgba(8, 8, 10, 0.7); }
+.bcard-brand { margin-top: 1.2mm; font-family: var(--font-mono); font-size: 1.9mm; letter-spacing: 0.12em; text-transform: uppercase; color: #8a6d2f; }
+
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body * { visibility: hidden; }
+  .print-sheet, .print-sheet * { visibility: visible; }
+  .print-sheet { position: absolute; left: 0; top: 0; gap: 6mm; }
+  .bcard { box-shadow: none; outline: 0.1mm dashed #bbb; outline-offset: 0; }
+}

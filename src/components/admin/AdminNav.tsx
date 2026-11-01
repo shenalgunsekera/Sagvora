@@ -18,6 +18,7 @@ const SECTIONS: { heading: string; items: { href: string; label: string; badge?:
       { href: "/admin/work", label: "Work" },
       { href: "/admin/stages", label: "Ladder stages" },
       { href: "/admin/testimonials", label: "Testimonials" },
+      { href: "/admin/team", label: "Team cards" },
     ],
   },
   {

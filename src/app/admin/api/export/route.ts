@@ -7,6 +7,7 @@ import {
   getServices,
   getSettings,
   getStages,
+  getTeam,
   getTestimonials,
 } from "@/lib/queries";
 
@@ -39,6 +40,7 @@ export async function GET() {
     services: await getServices(false),
     projects: await getProjects(false),
     testimonials: await getTestimonials(false),
+    team: await getTeam(false),
     messages: await getMessages(),
     media: await getMedia(),
   };

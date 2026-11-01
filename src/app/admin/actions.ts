@@ -22,6 +22,7 @@ import {
   deleteProject,
   deleteService,
   deleteStage,
+  deleteTeamMember,
   deleteTestimonial,
   getMediaItem,
   getSettings,
@@ -34,6 +35,7 @@ import {
   uniqueSlug,
   upsertService,
   upsertStage,
+  upsertTeamMember,
   upsertTestimonial,
 } from "@/lib/queries";
 import type { OrderedTable } from "@/lib/queries";
@@ -54,6 +56,7 @@ const LIST_PATHS: Record<OrderedTable, string> = {
   projects: "/admin/work",
   stages: "/admin/stages",
   testimonials: "/admin/testimonials",
+  team: "/admin/team",
 };
 
 export async function moveItemAction(formData: FormData) {
@@ -201,6 +204,44 @@ export async function deleteTestimonialAction(formData: FormData) {
   await requireUser();
   await deleteTestimonial(num(formData, "id"));
   refresh("/admin/testimonials");
+}
+
+/* ==========================================================================
+   Team cards
+   ========================================================================== */
+
+export async function saveTeamMemberAction(formData: FormData) {
+  await requireUser();
+
+  const id = num(formData, "id") || undefined;
+  const slug = await uniqueSlug("team", slugFrom(formData, "name"), id);
+  // WhatsApp links need bare digits with the country code.
+  const whatsapp = str(formData, "whatsapp").replace(/\D/g, "").replace(/^0/, "94");
+  const linkedin = str(formData, "linkedin");
+
+  await upsertTeamMember({
+    id,
+    slug,
+    name: str(formData, "name"),
+    position: str(formData, "position"),
+    photo: str(formData, "photo") || null,
+    email: str(formData, "email"),
+    phone: str(formData, "phone"),
+    whatsapp,
+    linkedin: linkedin && !/^https?:\/\//.test(linkedin) ? `https://${linkedin}` : linkedin,
+    bio: str(formData, "bio"),
+    orderIndex: num(formData, "orderIndex"),
+    published: bool(formData, "published"),
+  });
+
+  refresh("/admin/team");
+  redirect("/admin/team");
+}
+
+export async function deleteTeamMemberAction(formData: FormData) {
+  await requireUser();
+  await deleteTeamMember(num(formData, "id"));
+  refresh("/admin/team");
 }
 
 /* ==========================================================================

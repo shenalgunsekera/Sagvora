@@ -9,6 +9,7 @@ import type {
   Service,
   SiteSettings,
   Stage,
+  TeamMember,
   Testimonial,
 } from "./types";
 
@@ -30,6 +31,7 @@ type Collection =
   | "services"
   | "projects"
   | "testimonials"
+  | "team"
   | "messages"
   | "media";
 
@@ -95,7 +97,7 @@ async function remove(name: Collection, id: number) {
  * edited is ignored so re-saving an unchanged record does not rename it.
  */
 export async function uniqueSlug(
-  table: "services" | "projects",
+  table: "services" | "projects" | "team",
   base: string,
   excludeId?: number,
 ): Promise<string> {
@@ -113,9 +115,9 @@ export async function uniqueSlug(
 
 /* ------------------------------------------------------------------ ordering */
 
-export type OrderedTable = "services" | "projects" | "stages" | "testimonials";
+export type OrderedTable = "services" | "projects" | "stages" | "testimonials" | "team";
 
-const ORDERED_TABLES: OrderedTable[] = ["services", "projects", "stages", "testimonials"];
+const ORDERED_TABLES: OrderedTable[] = ["services", "projects", "stages", "testimonials", "team"];
 
 export const isOrderedTable = (v: string): v is OrderedTable =>
   (ORDERED_TABLES as string[]).includes(v);
@@ -288,6 +290,39 @@ export function upsertTestimonial(input: Partial<Testimonial> & { id?: number })
 }
 
 export const deleteTestimonial = (id: number) => remove("testimonials", id);
+
+/* ------------------------------------------------------------------ team cards */
+
+export async function getTeam(onlyPublished = true): Promise<TeamMember[]> {
+  const rows = await cachedAll<TeamMember>("team");
+  return rows.filter((t) => !onlyPublished || t.published === 1).sort(byOrder);
+}
+
+export async function getTeamMember(id: number): Promise<TeamMember | null> {
+  return (await getTeam(false)).find((t) => t.id === id) ?? null;
+}
+
+export async function getTeamMemberBySlug(slug: string): Promise<TeamMember | null> {
+  return (await getTeam(true)).find((t) => t.slug === slug) ?? null;
+}
+
+export function upsertTeamMember(input: Partial<TeamMember> & { id?: number }) {
+  return upsert("team", input, () => ({
+    slug: input.slug ?? "",
+    name: input.name ?? "",
+    position: input.position ?? "",
+    photo: input.photo ?? null,
+    email: input.email ?? "",
+    phone: input.phone ?? "",
+    whatsapp: input.whatsapp ?? "",
+    linkedin: input.linkedin ?? "",
+    bio: input.bio ?? "",
+    orderIndex: input.orderIndex ?? 0,
+    published: input.published ?? 1,
+  }));
+}
+
+export const deleteTeamMember = (id: number) => remove("team", id);
 
 /* ------------------------------------------------------------------ messages
  * Admin-only and always read fresh — never cached.
