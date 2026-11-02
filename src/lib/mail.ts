@@ -85,6 +85,9 @@ export async function sendEnquiry(e: Enquiry): Promise<{ ok: true } | { ok: fals
     await transporter().sendMail({
       from: { name: "Sagvora website", address: clean(process.env.GMAIL_USER) },
       to,
+      // A copy to the sending Gmail too: mail sent to yourself always lands in
+      // the inbox, so an enquiry is never only in another mailbox's spam.
+      bcc: clean(process.env.GMAIL_USER) === to ? undefined : clean(process.env.GMAIL_USER),
       replyTo: { name: oneLine(e.name), address: e.email },
       subject: oneLine(`New enquiry: ${e.subject || e.name}${e.company ? ` (${e.company})` : ""}`),
       text: [...rows.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`), "", e.message].join("\n"),
