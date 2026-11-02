@@ -90,12 +90,17 @@ export default function ContactForm() {
       className="panel p-6 sm:p-8 md:p-10"
       noValidate
     >
-      {/* Honeypot — hidden from people, irresistible to bots. */}
+      {/* Honeypot — hidden from people, irresistible to bots. The name matches
+          nothing browsers or password managers autofill (a field called
+          "website" was being autofilled, so real enquiries looked like spam). */}
       <input
         type="text"
-        name="website"
+        name="sv_hp"
         tabIndex={-1}
         autoComplete="off"
+        data-1p-ignore
+        data-lpignore="true"
+        data-form-type="other"
         aria-hidden="true"
         className="absolute h-px w-px opacity-0"
         style={{ left: "-9999px" }}
