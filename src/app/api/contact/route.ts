@@ -12,10 +12,15 @@ const schema = z.object({
   // Honeypot: real people never fill this in. Kept permissive on purpose so a
   // filled-in value reaches the handler and can be swallowed silently rather
   // than bounced with a validation error that names the trap.
+  // Milliseconds the form was open before sending (set by ContactForm).
+  elapsed: z.coerce.number().optional(),
+  // Old hidden trap fields. Browsers autofilled them, so they are ignored.
   sv_hp: z.string().optional(),
-  // The trap's old name. Browsers autofilled it, so it is accepted and ignored.
   website: z.string().optional(),
 });
+
+/** Faster than any person can fill the form in: a script posting directly. */
+const TOO_FAST = 2500;
 
 /** Naive in-memory throttle. Enough to stop casual form spam on a single node. */
 const hits = new Map<string, { count: number; reset: number }>();
@@ -54,24 +59,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 });
   }
 
-  // A filled trap gets a normal-looking success, so bots learn nothing.
-  // Malformed spam is swallowed outright; anything that passes validation is
-  // still kept in Admin (flagged, not emailed) in case a person tripped it.
-  const trapped = typeof (body as { sv_hp?: unknown })?.sv_hp === "string" && (body as { sv_hp: string }).sv_hp.length > 0;
-
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    if (trapped) return NextResponse.json({ ok: true });
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Please check the form." },
       { status: 422 },
     );
   }
 
-  const { sv_hp: _trap, website: _old, ...data } = parsed.data;
+  const { elapsed, sv_hp: _a, website: _b, ...data } = parsed.data;
   const id = await createMessage(data);
-  if (trapped) {
-    await setMessageMail(id, "failed: held as likely spam (hidden field was filled), not emailed").catch(() => {});
+  // Sent too fast to be typed: kept in Admin, flagged and not emailed, with a
+  // normal-looking success so a bot learns nothing.
+  if (elapsed !== undefined && elapsed < TOO_FAST) {
+    await setMessageMail(id, "failed: held as likely spam (sent within seconds of opening), not emailed").catch(() => {});
     return NextResponse.json({ ok: true });
   }
   // Saved first, so a mail hiccup never loses an enquiry; it stays in Admin,

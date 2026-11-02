@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -14,11 +14,14 @@ const FIELDS = [
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const openedAt = useRef(Date.now());
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const data = Object.fromEntries(new FormData(form).entries());
+    // How long the form was open: people take seconds, bots post instantly.
+    // (A hidden honeypot field was dropped: browsers autofilled it.)
+    const data = { ...Object.fromEntries(new FormData(form).entries()), elapsed: Date.now() - openedAt.current };
 
     setStatus("sending");
     setError("");
@@ -90,22 +93,6 @@ export default function ContactForm() {
       className="panel p-6 sm:p-8 md:p-10"
       noValidate
     >
-      {/* Honeypot — hidden from people, irresistible to bots. The name matches
-          nothing browsers or password managers autofill (a field called
-          "website" was being autofilled, so real enquiries looked like spam). */}
-      <input
-        type="text"
-        name="sv_hp"
-        tabIndex={-1}
-        autoComplete="off"
-        data-1p-ignore
-        data-lpignore="true"
-        data-form-type="other"
-        aria-hidden="true"
-        className="absolute h-px w-px opacity-0"
-        style={{ left: "-9999px" }}
-      />
-
       <div className="grid gap-7 sm:grid-cols-2">
         {FIELDS.map((f) => (
           <label key={f.name} className={`field ${f.name === "subject" ? "sm:col-span-2" : ""}`}>
